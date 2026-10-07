@@ -1,0 +1,147 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.TimelinePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="16">
+                <StackPanel Margin="0,16,0,0" Spacing="12">
+                    <TextBlock Text="Timeline" Style="{StaticResource PageTitleTextStyle}" />
+                    <SelectorBar x:Name="Sections" SelectionChanged="OnSectionChanged">
+                        <SelectorBarItem Text="System timeline" IsSelected="True" />
+                        <SelectorBarItem Text="What changed?" />
+                    </SelectorBar>
+                </StackPanel>
+
+                <!-- System timeline -->
+                <StackPanel x:Name="TimelinePanel" Spacing="16">
+                    <Grid ColumnSpacing="12" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel x:Name="FilterPanel" Orientation="Horizontal" Spacing="6" />
+                        <ComboBox Grid.Column="1" x:Name="RangeBox" SelectionChanged="OnRangeChanged" MinWidth="140" AutomationProperties.Name="Time range">
+                            <ComboBoxItem Content="Last 24 hours" Tag="1" />
+                            <ComboBoxItem Content="Last 7 days" Tag="7" IsSelected="True" />
+                            <ComboBoxItem Content="Last 30 days" Tag="30" />
+                        </ComboBox>
+                    </Grid>
+                    <TextBox PlaceholderText="Filter events (for example: crash, NVIDIA, Wi-Fi)" Text="{x:Bind Vm.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <c:AdaptiveGrid MinItemWidth="420" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
+                        <Border Style="{StaticResource CardStyle}">
+                            <ItemsRepeater ItemsSource="{x:Bind Vm.Days}">
+                                <ItemsRepeater.Layout><StackLayout Spacing="18" /></ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:TimelineDay">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Text="{x:Bind Header}" Style="{StaticResource EyebrowTextStyle}" />
+                                            <ListView ItemsSource="{x:Bind Events}" SelectionMode="Single" SelectionChanged="OnEventSelected" IsItemClickEnabled="False"
+                                                      ItemContainerStyle="{StaticResource TableListViewItemStyle}" ScrollViewer.VerticalScrollMode="Disabled">
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:EventRow">
+                                                        <Grid ColumnSpacing="12" Padding="0,6">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="56" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="15" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                                            <TextBlock Grid.Column="1" Text="{x:Bind ShortTime}" Style="{StaticResource MutedTextStyle}" />
+                                                            <StackPanel Grid.Column="2">
+                                                                <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
+                                                                <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind Category}" /><Run Text="  " /><Run Text="{x:Bind SeverityLabel}" FontWeight="SemiBold" /></TextBlock>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </Border>
+
+                        <Border Style="{StaticResource CardStyle}" VerticalAlignment="Top">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Event details" Style="{StaticResource SectionTitleTextStyle}" />
+                                <TextBlock Text="Select an event to see what happened around it and how strongly other events relate to it." Style="{StaticResource MutedTextStyle}"
+                                           Visibility="{x:Bind local:Bool.Not(Vm.HasSelection), Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind Vm.Selected.Title, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind Vm.Selected.Detail, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
+                                <TextBlock Text="{x:Bind Vm.SelectedSummary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                                <c:InfoList Items="{x:Bind Vm.SelectedTelemetry, Mode=OneWay}" />
+                                <ItemsRepeater ItemsSource="{x:Bind Vm.Related}">
+                                    <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:CorrelationRow">
+                                            <Border Style="{StaticResource SunkenPanelStyle}">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="{x:Bind Strength}" Style="{StaticResource EyebrowTextStyle}" />
+                                                    <TextBlock><Run Text="{x:Bind Title}" FontWeight="SemiBold" /> · <Run Text="{x:Bind Time}" Foreground="{ThemeResource TextSecondaryBrush}" /></TextBlock>
+                                                    <TextBlock Text="{x:Bind Rationale}" Style="{StaticResource MutedTextStyle}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                                <TextBlock Style="{StaticResource LabelTextStyle}" Text="Confirmed = a record directly links the events. Strong = a repeated pattern against the baseline. Possible = timing only, which never proves cause." />
+                            </StackPanel>
+                        </Border>
+                    </c:AdaptiveGrid>
+                </StackPanel>
+
+                <!-- What changed -->
+                <StackPanel x:Name="ChangesPanel" Spacing="16" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Since yesterday" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="yesterday" />
+                        <Button Content="Last week" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="week" />
+                        <Button Content="Since last restart" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="restart" />
+                        <Button Content="Last 30 days" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="month" />
+                        <CalendarDatePicker x:Name="CustomDate" PlaceholderText="Since a date…" DateChanged="OnCustomDate" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.ChangeRangeLabel, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Changes}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChangeGroupRow">
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="16" />
+                                            <TextBlock Text="{x:Bind Kind}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
+                                        </StackPanel>
+                                        <ItemsRepeater ItemsSource="{x:Bind Items}">
+                                            <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
+                                            <ItemsRepeater.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:ChangeItemRow">
+                                                    <Grid ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind Source}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="120" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock><Run Text="+ " Foreground="{ThemeResource TextSecondaryBrush}" /><Run Text="{x:Bind Title}" /></TextBlock>
+                                                            <TextBlock Text="{x:Bind Delta}" Style="{StaticResource LabelTextStyle}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsRepeater.ItemTemplate>
+                                        </ItemsRepeater>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                    <TextBlock Style="{StaticResource LabelTextStyle}" Text="Sentinel builds this from Windows event logs and from comparing its own inventory snapshots (drivers, apps, services, startup items, devices, firmware, battery and drive health). Changes before Sentinel was installed appear only when Windows logged them." />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</local:SentinelPage>

@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+artifacts/
+*.db
+*.db-wal
+*.db-shm
+publish/
+*.log
+# Release signing keys must never be committed.
+*.pem
+*.key
+.sentinel/

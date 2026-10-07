@@ -1,0 +1,50 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.HealthPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="10">
+                <TextBlock Text="System health" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.Headline, Mode=OneWay}" Style="{StaticResource HeroTitleTextStyle}" FontSize="24" />
+                <TextBlock Text="{x:Bind Vm.Detail, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+                <c:StatusPill Status="{x:Bind Vm.Overall, Mode=OneWay}" HorizontalAlignment="Left" />
+                <TextBlock Text="{x:Bind Vm.Updated, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+            </StackPanel>
+
+            <ItemsRepeater ItemsSource="{x:Bind Vm.Categories}">
+                <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HealthCategoryCard">
+                        <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{x:Bind Name}">
+                            <Expander.Header>
+                                <Grid ColumnSpacing="16" Padding="0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind Summary}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Confidence}" Style="{StaticResource LabelTextStyle}" VerticalAlignment="Center" />
+                                        <c:StatusPill Status="{x:Bind Status}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Expander.Header>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Why" Style="{StaticResource EyebrowTextStyle}" />
+                                <c:EvidenceList Items="{x:Bind Factors}" />
+                            </StackPanel>
+                        </Expander>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

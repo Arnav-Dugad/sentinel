@@ -1,0 +1,79 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.AnomaliesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <Page.Resources>
+        <DataTemplate x:Key="AnomalyTemplate" x:DataType="vm:AnomalyCard">
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="10">
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{x:Bind Title}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
+                            <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind When}" /> · <Run Text="{x:Bind Deviation}" /> · <Run Text="{x:Bind Confidence}" /></TextBlock>
+                        </StackPanel>
+                        <c:StatusPill Grid.Column="1" Status="{x:Bind Status}" Text="{x:Bind SeverityText}" VerticalAlignment="Top" />
+                    </Grid>
+                    <TextBlock Text="{x:Bind Description}" Style="{StaticResource BodyTextStyle}" />
+                    <c:EvidenceList Items="{x:Bind Evidence}" />
+                    <TextBlock Text="{x:Bind Correlated}" Style="{StaticResource LabelTextStyle}" Visibility="{x:Bind local:Bool.HasText(Correlated)}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Anomalies" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+            </StackPanel>
+
+            <ItemsRepeater ItemsSource="{x:Bind Vm.Active}" ItemTemplate="{StaticResource AnomalyTemplate}">
+                <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
+            </ItemsRepeater>
+
+            <StackPanel Spacing="12" Visibility="{x:Bind local:Bool.NonZero(Vm.History.Count), Mode=OneWay}">
+                <TextBlock Text="Earlier (30 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                <ItemsRepeater ItemsSource="{x:Bind Vm.History}" ItemTemplate="{StaticResource AnomalyTemplate}">
+                    <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
+                </ItemsRepeater>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="What Sentinel has learned is normal" Style="{StaticResource SectionTitleTextStyle}" />
+                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="Baselines are learned from this PC's own minute-by-minute history over the last 30 days (median and typical 5th–95th percentile range). They need a few days of data before anomalies are reported, so Sentinel stays quiet until it knows what normal looks like." />
+                    <TextBlock Text="No baselines yet — they are computed every six hours once there is enough history." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Baselines.Count), Mode=OneWay}" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Baselines}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:BaselineRow">
+                                <Grid ColumnSpacing="16" Padding="0,6" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock><Run Text="{x:Bind Metric}" /> <Run Text="{x:Bind Context}" Foreground="{ThemeResource TextSecondaryBrush}" /></TextBlock>
+                                        <TextBlock Text="{x:Bind Basis}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Style="{StaticResource MutedTextStyle}"><Run Text="Typical " /><Run Text="{x:Bind Typical}" /></TextBlock>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource MutedTextStyle}"><Run Text="Median " /><Run Text="{x:Bind Median}" /></TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

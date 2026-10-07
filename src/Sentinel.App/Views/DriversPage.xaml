@@ -1,0 +1,88 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.DriversPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Drivers" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Driver timeline (90 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                    <TextBlock Text="{x:Bind Vm.Correlation, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" Visibility="{x:Bind local:Bool.HasText(Vm.Correlation), Mode=OneWay}" />
+                    <TextBlock Text="No driver changes were recorded." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Timeline.Count), Mode=OneWay}" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Timeline}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="4" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:EventRow">
+                                <Grid ColumnSpacing="12" Padding="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox PlaceholderText="Search drivers by device, provider or version" Text="{x:Bind Vm.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" MaxWidth="460" HorizontalAlignment="Left" MinWidth="240" />
+                <ToggleSwitch Grid.Column="1" IsOn="{x:Bind Vm.HideMicrosoft, Mode=TwoWay}" OnContent="Hiding generic Microsoft drivers" OffContent="Showing all drivers" MinWidth="0" />
+                <Button Grid.Column="2" Content="Refresh inventory" Command="{x:Bind Vm.RefreshInventoryCommand}" IsEnabled="{x:Bind local:Bool.Invert(Vm.Refreshing), Mode=OneWay}" />
+            </Grid>
+
+            <ItemsRepeater ItemsSource="{x:Bind Vm.Groups}">
+                <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DriverGroupRow">
+                        <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" IsExpanded="False">
+                            <Expander.Header>
+                                <TextBlock Padding="0,8"><Run Text="{x:Bind Name}" FontWeight="SemiBold" /><Run Text="  " /><Run Text="{x:Bind Count}" Foreground="{ThemeResource TextSecondaryBrush}" /></TextBlock>
+                            </Expander.Header>
+                            <ItemsRepeater ItemsSource="{x:Bind Drivers}">
+                                <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:DriverRow">
+                                        <Grid ColumnSpacing="12" Padding="0,6" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="{x:Bind Device}" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind Provider}" /> · <Run Text="{x:Bind Signer}" /></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <TextBlock Text="{x:Bind Version}" HorizontalAlignment="Right" />
+                                                <TextBlock Text="{x:Bind Date}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </Expander>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

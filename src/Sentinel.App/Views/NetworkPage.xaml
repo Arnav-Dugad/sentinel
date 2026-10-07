@@ -1,0 +1,107 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.NetworkPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <Grid Margin="0,16,0,0" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Network" Style="{StaticResource PageTitleTextStyle}" />
+                    <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+                </StackPanel>
+                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+            </Grid>
+
+            <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.LocationHint), Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Wi-Fi details need location access"
+                     Message="{x:Bind Vm.LocationHint, Mode=OneWay}">
+                <InfoBar.ActionButton>
+                    <HyperlinkButton Content="Open location settings" NavigateUri="ms-settings:privacy-location" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Throughput" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:SentinelChart x:Name="Chart" Height="220" AutomationProperties.Name="Network throughput chart" />
+                </StackPanel>
+            </Border>
+
+            <Grid>
+                <TextBlock Text="Adapters" Style="{StaticResource SectionTitleTextStyle}" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
+                    <ToggleSwitch IsOn="{x:Bind Vm.ShowInactive, Mode=TwoWay}" OnContent="Showing all adapters" OffContent="Connected only" MinWidth="0" />
+                    <ToggleSwitch IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing addresses" OffContent="Show sensitive identifiers" MinWidth="0" />
+                </StackPanel>
+            </Grid>
+
+            <ItemsRepeater ItemsSource="{x:Bind Vm.Adapters}">
+                <ItemsRepeater.Layout><StackLayout Spacing="16" /></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AdapterCard">
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
+                                        <TextBlock Text="{x:Bind Subtitle, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6" HorizontalAlignment="Right">
+                                        <c:StatusPill Status="{x:Bind Status, Mode=OneWay}" Text="{x:Bind StatusText, Mode=OneWay}" HorizontalAlignment="Right" />
+                                        <TextBlock HorizontalAlignment="Right" Style="{StaticResource MutedTextStyle}"><Run Text="{x:Bind Down, Mode=OneWay}" /><Run Text="   " /><Run Text="{x:Bind Up, Mode=OneWay}" /></TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                                <c:AdaptiveGrid MinItemWidth="360" MaxColumns="2" ColumnSpacing="24">
+                                    <c:InfoList Items="{x:Bind Details, Mode=OneWay}" />
+                                    <StackPanel Visibility="{x:Bind local:Bool.Vis(HasWifi), Mode=OneWay}" Spacing="6">
+                                        <TextBlock Text="Wi-Fi" Style="{StaticResource EyebrowTextStyle}" />
+                                        <c:InfoList Items="{x:Bind Wifi, Mode=OneWay}" />
+                                    </StackPanel>
+                                </c:AdaptiveGrid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="8">
+                    <Grid>
+                        <TextBlock Text="Connections (48 hours)" Style="{StaticResource SectionTitleTextStyle}" />
+                        <HyperlinkButton Content="Run a network test" HorizontalAlignment="Right" Click="OnTestClick" Padding="4,0" />
+                    </Grid>
+                    <TextBlock Text="No connection changes were recorded." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Events.Count), Mode=OneWay}" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:EventRow">
+                                <Grid ColumnSpacing="12" Padding="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{x:Bind Title}" />
+                                        <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

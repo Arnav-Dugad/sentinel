@@ -1,0 +1,107 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.GpuPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <Grid Margin="0,16,0,0" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="GPU" Style="{StaticResource PageTitleTextStyle}" />
+                    <TextBlock Text="{x:Bind Vm.Title, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+                </StackPanel>
+                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+            </Grid>
+
+            <ComboBox ItemsSource="{x:Bind Vm.AdapterChoices}" SelectedValuePath="Id" DisplayMemberPath="Name" SelectedValue="{x:Bind Vm.SelectedId, Mode=TwoWay}"
+                      MinWidth="320" Header="Adapter" />
+
+            <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.LowPowerNote), Mode=OneWay}" IsClosable="False" Severity="Informational"
+                     Title="Resting" Message="{x:Bind Vm.LowPowerNote, Mode=OneWay}" />
+
+            <c:AdaptiveGrid MinItemWidth="190">
+                <Border Style="{StaticResource CompactCardStyle}">
+                    <c:MetricTile Label="Utilization" Glyph="&#xE9D2;" Value="{x:Bind Vm.Utilization, Mode=OneWay}" Caption="Busiest engine" Provenance="Windows GPU Engine counters" />
+                </Border>
+                <Border Style="{StaticResource CompactCardStyle}">
+                    <c:MetricTile Label="Temperature" Glyph="&#xE9CA;" Value="{x:Bind Vm.Temperature, Mode=OneWay}" Caption="{x:Bind Vm.TemperatureCaption, Mode=OneWay}" />
+                </Border>
+                <Border Style="{StaticResource CompactCardStyle}">
+                    <c:MetricTile Label="Power" Glyph="&#xE945;" Value="{x:Bind Vm.Power, Mode=OneWay}" Caption="{x:Bind Vm.PowerCaption, Mode=OneWay}" />
+                </Border>
+                <Border Style="{StaticResource CompactCardStyle}">
+                    <c:MetricTile Label="Core clock" Glyph="&#xEC4A;" Value="{x:Bind Vm.Clock, Mode=OneWay}" Caption="{x:Bind Vm.ClockCaption, Mode=OneWay}" />
+                </Border>
+                <Border Style="{StaticResource CompactCardStyle}">
+                    <c:MetricTile Label="Video memory" Glyph="&#xE964;" Value="{x:Bind Vm.Vram, Mode=OneWay}" Caption="{x:Bind Vm.VramCaption, Mode=OneWay}" Provenance="Windows GPU Adapter Memory counters" />
+                </Border>
+            </c:AdaptiveGrid>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Load, temperature and power" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:SentinelChart x:Name="Chart" Height="250" AutomationProperties.Name="GPU chart" />
+                    <TextBlock Text="{x:Bind Vm.Throttle, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.HasText(Vm.Throttle), Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+
+            <c:AdaptiveGrid MinItemWidth="380" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Engines" Style="{StaticResource SectionTitleTextStyle}" />
+                        <ItemsRepeater ItemsSource="{x:Bind Vm.Engines}">
+                            <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EngineRow">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="140" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="48" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind Name}" Style="{StaticResource MutedTextStyle}" />
+                                        <ProgressBar Grid.Column="1" Value="{x:Bind Percent}" Maximum="100" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{x:Bind Text}" HorizontalAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                        <TextBlock Text="Apps using this GPU" Style="{StaticResource SectionTitleTextStyle}" Margin="0,12,0,0" />
+                        <ItemsRepeater ItemsSource="{x:Bind Vm.Apps}">
+                            <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AppRow">
+                                    <Grid>
+                                        <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" Margin="0,0,60,0" />
+                                        <TextBlock Text="{x:Bind Gpu}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+                <StackPanel Spacing="16">
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Adapter" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:InfoList Items="{x:Bind Vm.Details, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Vendor telemetry" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:InfoList Items="{x:Bind Vm.Vendor, Mode=OneWay}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </c:AdaptiveGrid>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

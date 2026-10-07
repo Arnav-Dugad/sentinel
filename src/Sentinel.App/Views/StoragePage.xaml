@@ -1,0 +1,92 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.StoragePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <Grid Margin="0,16,0,0" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Storage" Style="{StaticResource PageTitleTextStyle}" />
+                    <TextBlock Text="Drive health is read through documented, query-only storage interfaces. Sentinel never sends commands to your drives." Style="{StaticResource PageSubtitleTextStyle}" />
+                </StackPanel>
+                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+            </Grid>
+
+            <ItemsRepeater ItemsSource="{x:Bind Vm.Drives}">
+                <ItemsRepeater.Layout><StackLayout Spacing="16" /></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DriveCard">
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="16">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{x:Bind Model}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
+                                        <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                    <c:StatusPill Grid.Column="1" Status="{x:Bind Status, Mode=OneWay}" Text="{x:Bind StatusText, Mode=OneWay}" VerticalAlignment="Top" />
+                                </Grid>
+                                <TextBlock Text="{x:Bind Summary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                                <c:AdaptiveGrid MinItemWidth="140" MaxColumns="6">
+                                    <c:MetricTile Label="Temperature" Value="{x:Bind Temperature, Mode=OneWay}" />
+                                    <c:MetricTile Label="Endurance" Value="{x:Bind Endurance, Mode=OneWay}" />
+                                    <c:MetricTile Label="Read" Value="{x:Bind Read, Mode=OneWay}" />
+                                    <c:MetricTile Label="Write" Value="{x:Bind Write, Mode=OneWay}" />
+                                    <c:MetricTile Label="Active" Value="{x:Bind Active, Mode=OneWay}" />
+                                    <c:MetricTile Label="Response" Value="{x:Bind Latency, Mode=OneWay}" />
+                                </c:AdaptiveGrid>
+                                <c:AdaptiveGrid MinItemWidth="360" MaxColumns="2" ColumnSpacing="24">
+                                    <c:InfoList Items="{x:Bind Health, Mode=OneWay}" />
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Endurance history" Style="{StaticResource EyebrowTextStyle}" />
+                                        <c:Sparkline Points="{x:Bind UsedHistory, Mode=OneWay}" ColorIndex="2" Height="90" />
+                                        <TextBlock Text="{x:Bind HistoryNote, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                </c:AdaptiveGrid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Disk activity" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:SentinelChart x:Name="Chart" Height="220" AutomationProperties.Name="Disk activity chart" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Volumes" Style="{StaticResource SectionTitleTextStyle}" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Volumes}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="14" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:VolumeRow">
+                                <StackPanel Spacing="6">
+                                    <Grid>
+                                        <TextBlock FontWeight="SemiBold"><Run Text="{x:Bind Label}" /> (<Run Text="{x:Bind Name}" />)</TextBlock>
+                                        <TextBlock Text="{x:Bind Space}" HorizontalAlignment="Right" Style="{StaticResource MutedTextStyle}" />
+                                    </Grid>
+                                    <ProgressBar Value="{x:Bind UsedPercent}" Maximum="100" />
+                                    <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind FileSystem}" /> · <Run Text="{x:Bind Role}" /> · <Run Text="{x:Bind Encryption}" /></TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

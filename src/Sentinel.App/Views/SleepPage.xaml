@@ -1,0 +1,86 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.SleepPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Sleep" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
+            </StackPanel>
+
+            <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Sleep sessions (30 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock Text="No sleep sessions observed yet." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Sessions.Count), Mode=OneWay}" />
+                        <ItemsRepeater ItemsSource="{x:Bind Vm.Sessions}">
+                            <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SessionRow">
+                                    <Grid ColumnSpacing="12" Padding="0,6" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock><Run Text="{x:Bind When}" /> · <Run Text="{x:Bind Duration}" /></TextBlock>
+                                            <TextBlock Text="{x:Bind Note}" Style="{StaticResource LabelTextStyle}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                            <TextBlock Text="{x:Bind Change}" HorizontalAlignment="Right" />
+                                            <TextBlock Text="{x:Bind Power}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <TextBlock Text="Sleep and wake (7 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                            <Button Content="Analyse" HorizontalAlignment="Right" Command="{x:Bind Vm.AnalyseCommand}" />
+                        </Grid>
+                        <StackPanel Spacing="10" Visibility="{x:Bind local:Bool.Vis(Vm.Diagnosis.HasResult), Mode=OneWay}">
+                            <TextBlock Text="{x:Bind Vm.Diagnosis.Summary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
+                            <c:EvidenceList Items="{x:Bind Vm.Diagnosis.Findings, Mode=OneWay}" />
+                        </StackPanel>
+                        <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
+                            <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EventRow">
+                                    <Grid ColumnSpacing="12" Padding="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{x:Bind Title}" />
+                                            <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </StackPanel>
+                </Border>
+            </c:AdaptiveGrid>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="About sleep data" Style="{StaticResource SectionTitleTextStyle}" />
+                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="Sentinel measures sleep drain by comparing the battery's charge just before sleep and just after waking, and reads wake sources from Windows' power log. Which apps hold the PC awake, wake timers and the Sleep Study report are only available to administrators, so Sentinel does not collect them." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

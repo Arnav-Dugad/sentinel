@@ -1,0 +1,65 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.UpdatesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Updates" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="Windows Update history, read from the Windows Update Agent. Sentinel never searches for, downloads or installs updates." Style="{StaticResource PageSubtitleTextStyle}" />
+                <HyperlinkButton Content="Open Windows Update" NavigateUri="ms-settings:windowsupdate" Padding="0" />
+            </StackPanel>
+
+            <InfoBar IsOpen="{x:Bind Vm.RebootRequired, Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Restart pending"
+                     Message="Windows reports that a restart is required to finish installing updates." />
+
+            <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Last 30 days" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:InfoList Items="{x:Bind Vm.Counts, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Stability around updates" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock Text="{x:Bind Vm.Correlation, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                    </StackPanel>
+                </Border>
+            </c:AdaptiveGrid>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="10">
+                    <Grid>
+                        <TextBlock Text="History" Style="{StaticResource SectionTitleTextStyle}" />
+                        <ComboBox HorizontalAlignment="Right" ItemsSource="{x:Bind Vm.Kinds}" SelectedIndex="{x:Bind Vm.KindIndex, Mode=TwoWay}" MinWidth="240" AutomationProperties.Name="Update type" />
+                    </Grid>
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Updates}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UpdateRow">
+                                <Grid ColumnSpacing="12" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Date}" Style="{StaticResource MutedTextStyle}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{x:Bind Kind}" Style="{StaticResource LabelTextStyle}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{x:Bind Result}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sentinel.AI/Sentinel.AI.csproj" />
+    <Project Path="src/Sentinel.Analytics/Sentinel.Analytics.csproj" />
+    <Project Path="src/Sentinel.App/Sentinel.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Sentinel.Core/Sentinel.Core.csproj" />
+    <Project Path="src/Sentinel.Data/Sentinel.Data.csproj" />
+    <Project Path="src/Sentinel.Diagnostics/Sentinel.Diagnostics.csproj" />
+    <Project Path="src/Sentinel.Domain/Sentinel.Domain.csproj" />
+    <Project Path="src/Sentinel.Intelligence/Sentinel.Intelligence.csproj" />
+    <Project Path="src/Sentinel.Platform.Windows/Sentinel.Platform.Windows.csproj" />
+    <Project Path="src/Sentinel.Telemetry/Sentinel.Telemetry.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sentinel.Tests/Sentinel.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Sentinel.Probe/Sentinel.Probe.csproj" />
+    <Project Path="tools/Sentinel.ReleaseTool/Sentinel.ReleaseTool.csproj" />
+  </Folder>
+</Solution>

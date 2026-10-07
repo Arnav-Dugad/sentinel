@@ -1,0 +1,46 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.NetworkTestPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="900" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Network test" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Style="{StaticResource PageSubtitleTextStyle}" Text="Measures latency to your router and to Microsoft's connectivity-check server, and times one DNS lookup. It sends about 20 small packets, only when you press Start. Sentinel never pings anything in the background." />
+            </StackPanel>
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Start test" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind Vm.RunCommand}" IsEnabled="{x:Bind local:Bool.Invert(Vm.Running), Mode=OneWay}" />
+                        <ProgressRing IsActive="{x:Bind Vm.Running, Mode=OneWay}" Width="20" Height="20" />
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Vm.Status, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Results}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LatencyRow">
+                                <Border Style="{StaticResource SunkenPanelStyle}">
+                                    <Grid ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="{x:Bind Label}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{x:Bind Summary}" Style="{StaticResource MutedTextStyle}" />
+                                            <TextBlock Text="{x:Bind Target}" Style="{StaticResource LabelTextStyle}" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Loss}" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>

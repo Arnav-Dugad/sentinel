@@ -1,0 +1,71 @@
+<local:SentinelPage
+    x:Class="Sentinel.App.Views.ComparePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Sentinel.App.Views"
+    xmlns:vm="using:Sentinel.App.ViewModels"
+    xmlns:c="using:Sentinel.App.Controls">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
+            <StackPanel Margin="0,16,0,0" Spacing="8">
+                <TextBlock Text="Compare" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="See how two periods differ, using only what Sentinel actually recorded." Style="{StaticResource PageSubtitleTextStyle}" />
+            </StackPanel>
+
+            <ComboBox ItemsSource="{x:Bind Vm.Presets}" SelectedIndex="{x:Bind Vm.PresetIndex, Mode=TwoWay}" MinWidth="380" Header="Comparison" />
+            <StackPanel Spacing="2">
+                <TextBlock Text="{x:Bind Vm.LabelA, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.LabelB, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
+                <TextBlock Text="{x:Bind Vm.Note, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" Margin="0,6,0,0" />
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="4">
+                    <Grid ColumnSpacing="12" Padding="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Metric" Style="{StaticResource TableHeaderTextStyle}" />
+                        <TextBlock Grid.Column="1" Text="A" Style="{StaticResource TableHeaderTextStyle}" />
+                        <TextBlock Grid.Column="2" Text="B" Style="{StaticResource TableHeaderTextStyle}" />
+                        <TextBlock Grid.Column="3" Text="Difference" Style="{StaticResource TableHeaderTextStyle}" />
+                    </Grid>
+                    <ItemsRepeater ItemsSource="{x:Bind Vm.Deltas}">
+                        <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DeltaRow">
+                                <Grid ColumnSpacing="12" Padding="0,7" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Name}" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Before}" Style="{StaticResource MutedTextStyle}" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind After}" />
+                                    <TextBlock Grid.Column="3" Text="{x:Bind Delta}" FontWeight="SemiBold" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <Grid>
+                        <TextBlock Text="Overlay" Style="{StaticResource SectionTitleTextStyle}" />
+                        <ComboBox HorizontalAlignment="Right" ItemsSource="{x:Bind Vm.Metrics}" DisplayMemberPath="Name" SelectedItem="{x:Bind Vm.SelectedMetric, Mode=TwoWay}" MinWidth="260" />
+                    </Grid>
+                    <c:SentinelChart x:Name="Chart" Height="240" AutomationProperties.Name="Comparison overlay chart" />
+                    <TextBlock Text="Dashed: period A, shifted to start at the same time as period B." Style="{StaticResource LabelTextStyle}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</local:SentinelPage>
