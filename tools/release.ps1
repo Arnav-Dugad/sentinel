@@ -13,15 +13,18 @@
 
 .EXAMPLE
   ./tools/release.ps1 -Notes "Fixes the Processes list flicker."
+  ./tools/release.ps1 -NotesFile notes.md
   ./tools/release.ps1 -NoPublish     # build, zip and sign only
 #>
 param(
     [string]$Notes = "",
+    [string]$NotesFile = "",
     [string]$KeyPath = "$env:USERPROFILE\.sentinel\release-signing-key.pem",
     [string[]]$Runtimes = @("win-x64", "win-arm64"),
     [switch]$NoPublish
 )
 $ErrorActionPreference = "Stop"
+if ($NotesFile) { $Notes = Get-Content -Raw -Encoding UTF8 $NotesFile }
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
@@ -64,6 +67,8 @@ $Notes
 
 Each package has a detached signature (``.zip.sig``, ECDSA P-256). Sentinel verifies it against the release key built into the app before installing an update. Sentinel is not code-signed with a certificate, so Windows SmartScreen may warn you the first time you run it.
 "@
-gh release create "v$version" @assets --title "Sentinel $version" --notes $body
+$bodyFile = Join-Path $out "release-notes.md"
+[IO.File]::WriteAllText($bodyFile, $body, (New-Object System.Text.UTF8Encoding $false))
+gh release create "v$version" @assets --title "Sentinel $version" --notes-file $bodyFile
 if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }
 Write-Host "Published v$version" -ForegroundColor Green

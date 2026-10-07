@@ -136,7 +136,7 @@ public sealed partial class UpdateService : ObservableObject, IDisposable
         _staged = _client.FindStaged(CurrentVersion);
         if (_staged is not null) SetReady(_staged, notify: false);
         else if (!_settings.Current.CheckForUpdates) Set(UpdateState.Off, "Automatic update checks are off.", "");
-        else Set(UpdateState.Idle, LastChecked is { } t ? $"Last checked {Ago(t)}." : "Sentinel will check for updates shortly.", "");
+        else Set(UpdateState.Idle, $"You have Sentinel {CurrentVersion}.", LastChecked is { } t ? $"Last checked for updates {Ago(t)}." : "Sentinel will check for updates shortly.");
         _ = Task.Run(() => LoopAsync(_cts.Token));
     }
 
