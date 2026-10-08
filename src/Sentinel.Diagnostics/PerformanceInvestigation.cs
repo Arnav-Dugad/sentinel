@@ -51,7 +51,7 @@ public sealed class PerformanceInvestigation(TelemetryEngine engine, ProviderSet
             engine.SetInvestigationMode(false);
         }
         var stop = DateTimeOffset.Now;
-        progress?.Report(new InvestigationProgress(1, "Analysing…"));
+        progress?.Report(new InvestigationProgress(1, "Analyzing…"));
 
         var metrics = new List<Fact>();
         var findings = new List<Finding>();
@@ -74,8 +74,8 @@ public sealed class PerformanceInvestigation(TelemetryEngine engine, ProviderSet
         M(MetricKeys.MemUsedPct, "Memory in use", v => $"{v:F0}%");
         M(MetricKeys.MemHardFaults, "Hard faults", v => $"{v:N0}/s");
         M(MetricKeys.DiskActive, "Disk active time", v => $"{v:F0}%");
-        M(MetricKeys.DiskRead, "Disk read", v => units.Throughput(v));
-        M(MetricKeys.DiskWrite, "Disk write", v => units.Throughput(v));
+        M(MetricKeys.DiskRead, "Disk read", v => units.DiskRate(v));
+        M(MetricKeys.DiskWrite, "Disk write", v => units.DiskRate(v));
         M(MetricKeys.NetRx, "Network download", v => units.Throughput(v));
 
         var processes = perApp.Select(kv => new ProcessContribution(kv.Key, kv.Value.Average(a => a.CpuPercent), kv.Value.Max(a => a.CpuPercent),

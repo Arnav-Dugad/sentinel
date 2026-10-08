@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Sentinel.App.Views"
+    xmlns:c="using:Sentinel.App.Controls"
     xmlns:vm="using:Sentinel.App.ViewModels">
 
     <Page.Resources>
@@ -13,14 +14,11 @@
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel MaxWidth="980" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Settings" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Sentinel is read-only and fully local. Nothing here can change your hardware or Windows configuration." Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Settings" Subtitle="Sentinel is read-only and fully local. Nothing here can change your hardware or Windows configuration." />
 
-            <InfoBar IsOpen="{x:Bind Vm.HasMessage, Mode=OneWay}" Message="{x:Bind Vm.Message, Mode=OneWay}" Severity="Informational" IsClosable="False" />
-            <InfoBar IsOpen="{x:Bind Vm.RestartNeeded, Mode=OneWay}" Severity="Warning" Title="Restart required" Message="Developer simulation changes take effect after restarting Sentinel." IsClosable="False">
+            <InfoBar IsOpen="{x:Bind Vm.HasMessage, Mode=OneWay}" Visibility="{x:Bind local:Bool.Vis(Vm.HasMessage), Mode=OneWay}" Message="{x:Bind Vm.Message, Mode=OneWay}" Severity="Informational" IsClosable="False" />
+            <InfoBar IsOpen="{x:Bind Vm.RestartNeeded, Mode=OneWay}" Visibility="{x:Bind local:Bool.Vis(Vm.RestartNeeded), Mode=OneWay}" Severity="Warning" Title="Restart required" Message="Developer simulation changes take effect after restarting Sentinel." IsClosable="False">
                 <InfoBar.ActionButton>
                     <Button Content="Restart now" Command="{x:Bind Vm.RestartCommand}" />
                 </InfoBar.ActionButton>
@@ -29,7 +27,7 @@
             <!-- Updates -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Updates" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Updates" Glyph="&#xE895;" Margin="0,0,0,4" />
                     <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <Grid Width="40" Height="40" CornerRadius="20" Background="{ThemeResource SubtleFillColorSecondaryBrush}" VerticalAlignment="Top">
@@ -73,7 +71,7 @@
             <!-- Appearance -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="Appearance and units" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Appearance and units" Glyph="&#xE790;" Margin="0,0,0,12" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock Text="Theme" VerticalAlignment="Center" />
@@ -90,7 +88,7 @@
             <!-- Behaviour -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="Behavior" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Behavior" Glyph="&#xE7E8;" Margin="0,0,0,12" />
                     <ToggleSwitch Header="Keep running in the notification area when the window is closed" IsOn="{x:Bind Vm.CloseToTray, Mode=TwoWay}" />
                     <ToggleSwitch Header="Start Sentinel when I sign in" IsOn="{x:Bind Vm.StartWithWindows, Mode=TwoWay}" />
                     <ToggleSwitch Header="Notifications for significant issues" IsOn="{x:Bind Vm.Notifications, Mode=TwoWay}" />
@@ -101,7 +99,7 @@
             <!-- History -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="History and storage" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="History and storage" Glyph="&#xE81C;" Margin="0,0,0,12" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel>
@@ -130,7 +128,7 @@
             <!-- Privacy -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Privacy" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Privacy" Glyph="&#xE72E;" Margin="0,0,0,8" />
                     <ToggleSwitch Header="Privacy mode" IsOn="{x:Bind Vm.PrivacyMode, Mode=TwoWay}" />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="Privacy mode stops collecting application names and process history and hides them from insights and Ask Sentinel. Hardware telemetry continues." />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Margin="0,8,0,0" Text="Always true: no account, no cloud, no analytics, no advertising. Serial numbers, UUIDs, MAC and IP addresses are masked until you choose to reveal them, and exports remove them by default." />
@@ -141,7 +139,7 @@
             <!-- Local AI -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Local AI (optional)" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Local AI (optional)" Glyph="&#xE8BD;" Margin="0,0,0,4" />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="Sentinel's analysis works without AI. If you run Ollama on this PC, Ask Sentinel can use it to explain results in conversational language. The model only receives the redacted evidence for your question, has no tools, and can never run commands or change settings." />
                     <ToggleSwitch Header="Enable Ollama" IsOn="{x:Bind Vm.OllamaEnabled, Mode=TwoWay}" />
                     <Grid ColumnSpacing="8">
@@ -158,7 +156,7 @@
             <!-- Providers -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Telemetry providers" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Telemetry providers" Glyph="&#xE9D9;" Margin="0,0,0,4" />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="Every provider is read-only and must pass Sentinel's safety contract before it runs. Turning one off stops its collection immediately." />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Providers}">
                         <ItemsRepeater.Layout>
@@ -186,7 +184,7 @@
             <!-- Developer -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Developer" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Developer" Glyph="&#xE713;" Margin="0,0,0,4" />
                     <ToggleSwitch Header="Developer simulation (synthetic telemetry)" IsOn="{x:Bind Vm.Simulation, Mode=TwoWay}" />
                     <ComboBox Header="Scenario" MinWidth="240" ItemsSource="{x:Bind Vm.Scenarios}" SelectedIndex="{x:Bind Vm.ScenarioIndex, Mode=TwoWay}" />
                     <TextBlock Style="{StaticResource LabelTextStyle}" Text="Simulation is for testing Sentinel without specific hardware. It is always labelled on screen and uses a separate database." />
@@ -196,7 +194,7 @@
             <!-- About -->
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="About Sentinel" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="About Sentinel" Glyph="&#xE946;" Margin="0,0,0,6" />
                     <TextBlock Style="{StaticResource MutedTextStyle}"><Run Text="Version " /><Run Text="{x:Bind Vm.Version}" /></TextBlock>
                     <TextBlock Style="{StaticResource BodyTextStyle}" Text="Observe everything safely. Understand what is happening. Learn what is normal. Detect what is unusual. Explain why it matters." />
                     <TextBlock Text="Sentinel's own resource use" Style="{StaticResource LabelTextStyle}" Margin="0,8,0,0" />

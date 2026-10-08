@@ -7,11 +7,8 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Compare" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="See how two periods differ, using only what Sentinel actually recorded." Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Compare" Subtitle="See how two periods differ, using only what Sentinel actually recorded." />
 
             <ComboBox ItemsSource="{x:Bind Vm.Presets}" SelectedIndex="{x:Bind Vm.PresetIndex, Mode=TwoWay}" MinWidth="380" Header="Comparison" />
             <StackPanel Spacing="2">
@@ -58,10 +55,11 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <Grid>
-                        <TextBlock Text="Overlay" Style="{StaticResource SectionTitleTextStyle}" />
-                        <ComboBox HorizontalAlignment="Right" ItemsSource="{x:Bind Vm.Metrics}" DisplayMemberPath="Name" SelectedItem="{x:Bind Vm.SelectedMetric, Mode=TwoWay}" MinWidth="260" />
-                    </Grid>
+                    <c:CardHeader Title="Overlay" Glyph="&#xE9D2;">
+                        <c:CardHeader.Actions>
+                            <ComboBox ItemsSource="{x:Bind Vm.Metrics}" DisplayMemberPath="Name" SelectedItem="{x:Bind Vm.SelectedMetric, Mode=TwoWay}" MinWidth="260" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <c:SentinelChart x:Name="Chart" Height="240" AutomationProperties.Name="Comparison overlay chart" />
                     <TextBlock Text="Dashed: period A, shifted to start at the same time as period B." Style="{StaticResource LabelTextStyle}" />
                 </StackPanel>

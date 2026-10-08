@@ -78,7 +78,7 @@ public sealed partial class PerformanceViewModel : PageViewModel
             Findings = _result.Findings.Select(f => new EvidenceRow(f.Kind, f.Text, f.Source)).ToList();
             Contributions.Clear();
             foreach (var p in _result.Processes)
-                Contributions.Add(new ContributionRow(p.Name, $"{p.AvgCpu:F1}% avg · {p.PeakCpu:F0}% peak", U.Bytes(p.PeakMemoryBytes), U.Throughput(p.AvgDiskBytesPerSec), $"{p.AvgGpu:F0}%"));
+                Contributions.Add(new ContributionRow(p.Name, $"{p.AvgCpu:F1}% avg · {p.PeakCpu:F0}% peak", U.Bytes(p.PeakMemoryBytes), U.DiskRate(p.AvgDiskBytesPerSec), $"{p.AvgGpu:F0}%"));
             Status = $"Captured {_result.Start:T}–{_result.End:T}. High-resolution sampling has stopped.";
             HasResult = true;
         }
@@ -173,7 +173,7 @@ public sealed partial class SleepViewModel : PageViewModel
         foreach (var s in sleeps)
         {
             var rate = s.PercentDelta is { } d && s.Duration.TotalHours > 0.2 ? $"{-d / s.Duration.TotalHours:F1}% per hour" : "";
-            Sessions.Add(new SessionRow("Asleep", "", s.Start.ToString("ddd d MMM, t", CultureInfo.CurrentCulture), UnitFormatter.Duration(s.Duration),
+            Sessions.Add(new SessionRow("Asleep", "", UnitFormatter.When(s.Start), UnitFormatter.Duration(s.Duration),
                 s.StartPercent is { } a && s.EndPercent is { } e ? $"{a:F0}% → {e:F0}%" : "—", rate, s.Notes ?? ""));
         }
         var events = store.QueryEvents(now.AddDays(-7), now, [EventCategory.Sleep, EventCategory.Wake], 200).Select(e => new EventRow(e)).ToList();
@@ -261,7 +261,7 @@ public sealed partial class ReportsViewModel : PageViewModel
         Recent.Clear();
         var dir = Services.GetRequiredService<SentinelPaths>().Reports;
         foreach (var f in new DirectoryInfo(dir).EnumerateFiles().OrderByDescending(f => f.LastWriteTime).Take(12))
-            Recent.Add($"{f.Name}  ·  {f.LastWriteTime:g}");
+            Recent.Add($"{f.Name}  ·  {UnitFormatter.When(f.LastWriteTime)}");
     }
 
     [RelayCommand]

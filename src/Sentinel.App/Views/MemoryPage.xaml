@@ -7,49 +7,41 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <Grid Margin="0,16,0,0" ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Memory" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" MaxWidth="760" HorizontalAlignment="Left" />
-                </StackPanel>
-                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-            </Grid>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Memory" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}">
+                <c:PageHeader.Actions>
+                    <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                </c:PageHeader.Actions>
+            </c:PageHeader>
 
             <c:AdaptiveGrid MinItemWidth="190">
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="In use" Glyph="&#xE964;" Value="{x:Bind Vm.InUse, Mode=OneWay}" Caption="{x:Bind Vm.InUseCaption, Mode=OneWay}" Provenance="GlobalMemoryStatusEx" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Available" Glyph="&#xE73E;" Value="{x:Bind Vm.Available, Mode=OneWay}" Caption="Free + reclaimable cache" Provenance="GlobalMemoryStatusEx" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Committed" Glyph="&#xE8B7;" Value="{x:Bind Vm.Committed, Mode=OneWay}" Caption="{x:Bind Vm.CommittedCaption, Mode=OneWay}" Provenance="GetPerformanceInfo" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Cached" Glyph="&#xE81E;" Value="{x:Bind Vm.Cached, Mode=OneWay}" Caption="Released instantly when needed" Provenance="GetPerformanceInfo" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Hard faults" Glyph="&#xEDA2;" Value="{x:Bind Vm.HardFaults, Mode=OneWay}" Caption="Pages read back from disk" Provenance="Memory\Page Reads/sec counter" />
-                </Border>
+                <c:MetricTile Label="In use" Glyph="&#xE964;" Value="{x:Bind Vm.InUse, Mode=OneWay}" Caption="{x:Bind Vm.InUseCaption, Mode=OneWay}" Provenance="GlobalMemoryStatusEx" />
+                <c:MetricTile Label="Available" Glyph="&#xE73E;" Value="{x:Bind Vm.Available, Mode=OneWay}" Caption="Free + reclaimable cache" Provenance="GlobalMemoryStatusEx" />
+                <c:MetricTile Label="Committed" Glyph="&#xE8B7;" Value="{x:Bind Vm.Committed, Mode=OneWay}" Caption="{x:Bind Vm.CommittedCaption, Mode=OneWay}" Provenance="GetPerformanceInfo" />
+                <c:MetricTile Label="Cached" Glyph="&#xE81E;" Value="{x:Bind Vm.Cached, Mode=OneWay}" Caption="Released instantly when needed" Provenance="GetPerformanceInfo" />
+                <c:MetricTile Label="Hard faults" Glyph="&#xEDA2;" Value="{x:Bind Vm.HardFaults, Mode=OneWay}" Caption="Pages read back from disk" Provenance="Memory\Page Reads/sec counter" />
             </c:AdaptiveGrid>
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="Composition" Style="{StaticResource SectionTitleTextStyle}" />
-                    <Grid Height="14" CornerRadius="7" ColumnSpacing="2">
+                    <c:CardHeader Title="Composition" Glyph="&#xE964;" Margin="0,0,0,2" />
+                    <Grid Height="12" CornerRadius="6" ColumnSpacing="3" AutomationProperties.Name="{x:Bind Vm.CompositionText, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{x:Bind Vm.InUseWidth, Mode=OneWay}" />
                             <ColumnDefinition Width="{x:Bind Vm.StandbyWidth, Mode=OneWay}" />
                             <ColumnDefinition Width="{x:Bind Vm.FreeWidth, Mode=OneWay}" />
                         </Grid.ColumnDefinitions>
-                        <Rectangle Fill="{ThemeResource AccentFillColorDefaultBrush}" />
-                        <Rectangle Grid.Column="1" Fill="{ThemeResource AccentFillColorTertiaryBrush}" Opacity="0.55" />
-                        <Rectangle Grid.Column="2" Fill="{ThemeResource ControlStrongFillColorDisabledBrush}" />
+                        <Rectangle>
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{ThemeResource ChartSeries1Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Grid.Column="1" Opacity="0.55">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{ThemeResource ChartSeries2Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <Rectangle Grid.Column="2" Fill="{ThemeResource ControlStrongFillColorDisabledBrush}" Opacity="0.6" />
                     </Grid>
                     <TextBlock Text="{x:Bind Vm.CompositionText, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
                 </StackPanel>
@@ -57,14 +49,14 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Usage over time" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Usage over time" Glyph="&#xE9D2;" />
                     <c:SentinelChart x:Name="Chart" Height="240" AutomationProperties.Name="Memory chart" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource CardStyle}" Visibility="{x:Bind local:Bool.NonZero(Vm.Growth.Count), Mode=OneWay}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Memory growth" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Memory growth" Glyph="&#xE9D2;" Margin="0,0,0,4" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Growth}">
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="x:String">
@@ -78,7 +70,7 @@
             <c:AdaptiveGrid MinItemWidth="380" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Largest memory users" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Largest memory users" Glyph="&#xE9F5;" Margin="0,0,0,6" />
                         <TextBlock Text="{x:Bind Vm.AppsNote, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.HasText(Vm.AppsNote), Mode=OneWay}" />
                         <ItemsRepeater ItemsSource="{x:Bind Vm.Apps}">
                             <ItemsRepeater.Layout><StackLayout Spacing="8" /></ItemsRepeater.Layout>
@@ -102,7 +94,7 @@
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Details" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Details" Glyph="&#xE946;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Details, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
@@ -110,10 +102,11 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="10">
-                    <Grid>
-                        <TextBlock Text="Memory modules" Style="{StaticResource SectionTitleTextStyle}" />
-                        <ToggleSwitch HorizontalAlignment="Right" IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing identifiers" OffContent="Show sensitive identifiers" MinWidth="0" />
-                    </Grid>
+                    <c:CardHeader Title="Memory modules" Glyph="&#xE964;">
+                        <c:CardHeader.Actions>
+                            <ToggleSwitch IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing identifiers" OffContent="Show sensitive identifiers" MinWidth="0" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <TextBlock Text="{x:Bind Vm.ModulesNote, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Modules}">
                         <ItemsRepeater.Layout><StackLayout Spacing="8" /></ItemsRepeater.Layout>

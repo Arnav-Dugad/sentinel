@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Sentinel.Core.Privacy;
 using Sentinel.Core.Knowledge;
+using Sentinel.Core.Units;
 using Sentinel.Domain;
 
 namespace Sentinel.Platform.Windows.Events;
@@ -106,7 +107,7 @@ public static class EventMapping
                 var sleepTime = e.Get("SleepTime");
                 var detail = source is null ? null : $"Wake source: {source}";
                 if (sleepTime is not null && DateTimeOffset.TryParse(sleepTime, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var slept))
-                    detail = $"Slept since {slept.ToLocalTime():g}. " + detail;
+                    detail = $"Slept since {UnitFormatter.Absolute(slept)}. " + detail;
                 return Make(EventCategory.Wake, Severity.Info, "Woke from sleep", detail, source);
             }
             case ("Microsoft-Windows-Kernel-Power", 506):

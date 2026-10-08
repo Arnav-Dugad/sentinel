@@ -57,8 +57,35 @@ public static class ChartData
             model.Bands.Add(new ChartBand(a.Start, a.LastSeen, a.Title));
     }
 
+    /// <summary>
+    /// Start of the newest unbroken run of samples in the main series (walking back until a gap larger than four
+    /// typical intervals, minimum 15 s), so a stray reading from start-up does not stretch the live axis.
+    /// </summary>
+    private static DateTimeOffset ContinuousRunStart(ChartModel model)
+    {
+        var main = model.Series.FirstOrDefault(s => !s.OwnScale && s.Points.Any(p => !double.IsNaN(p.V))) ?? model.Series.FirstOrDefault(s => s.Points.Any(p => !double.IsNaN(p.V)));
+        if (main is null) return model.To;
+        var pts = main.Points.Where(p => !double.IsNaN(p.V)).Select(p => p.T).OrderBy(t => t).ToList();
+        if (pts.Count < 3) return pts.Count > 0 ? pts[0] : model.To;
+        var deltas = pts.Zip(pts.Skip(1), (a, b) => (b - a).TotalSeconds).OrderBy(d => d).ToList();
+        var limit = TimeSpan.FromSeconds(Math.Max(15, deltas[deltas.Count / 2] * 4));
+        var start = pts[^1];
+        for (var i = pts.Count - 2; i >= 0 && start - pts[i] <= limit; i--) start = pts[i];
+        return start;
+    }
+
     public static void Apply(this SentinelChart chart, ChartModel model)
     {
+        // Live views open on a short buffer: start the axis at the first sample (showing at least 20 s) instead of
+        // squeezing a few seconds of data against the right edge of an empty ten-minute window. Historical ranges keep
+        // their full span, because gaps there are real information.
+        var isLive = model.To >= DateTimeOffset.Now.AddSeconds(-10) && model.To - model.From <= TimeSpan.FromMinutes(15);
+        if (isLive)
+        {
+            var first = ContinuousRunStart(model);
+            var earliest = model.To - TimeSpan.FromSeconds(20);
+            if (first > model.From) model.From = first < earliest ? first : earliest;
+        }
         chart.Series.Clear();
         foreach (var s in model.Series) chart.Series.Add(s);
         chart.Markers.Clear();

@@ -3,14 +3,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Sentinel.App.Views"
+    xmlns:c="using:Sentinel.App.Controls"
     xmlns:vm="using:Sentinel.App.ViewModels">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="900" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Network test" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Style="{StaticResource PageSubtitleTextStyle}" Text="Measures latency to your router and to Microsoft's connectivity-check server, and times one DNS lookup. It sends about 20 small packets, only when you press Start. Sentinel never pings anything in the background." />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Network test" Subtitle="Measures latency to your router and to Microsoft's connectivity-check server, and times one DNS lookup. It sends about 20 small packets, only when you press Start. Sentinel never pings anything in the background." />
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
                     <StackPanel Orientation="Horizontal" Spacing="12">

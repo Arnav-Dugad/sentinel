@@ -156,6 +156,7 @@ public sealed partial class MainWindow : Window
         {
             _parkedPage = null;
             NavigateTo(page);
+            UpdateRecordingIndicator();
         }
     }
 
@@ -266,9 +267,44 @@ public sealed partial class MainWindow : Window
             : ("Recording", "StatusHealthyBrush");
         RecordingText.Text = text;
         RecordingDot.Fill = (Brush)Application.Current.Resources[brush];
+        RecordingHalo.Fill = RecordingDot.Fill;
+        Pulse(!s.PrivacyMode && !s.RecordingPaused && _motion.AnimationsEnabled);
         ToolTipService.SetToolTip(RecordingButton, s.PrivacyMode
             ? "Privacy mode: application names and process history are not collected. Hardware telemetry continues."
             : s.RecordingPaused ? "History recording is paused. Live readings continue but nothing is saved." : "Sentinel is recording history locally on this PC. Nothing is uploaded.");
+    }
+
+    /// <summary>
+    /// A soft halo expands and fades around the dot three times when recording starts or the window opens. It runs on
+    /// the compositor thread and then stops, so Sentinel never keeps the GPU composing frames just for decoration.
+    /// </summary>
+    private void Pulse(bool on)
+    {
+        var visual = Microsoft.UI.Xaml.Hosting.ElementCompositionPreview.GetElementVisual(RecordingHalo);
+        if (!on)
+        {
+            visual.StopAnimation("Scale");
+            visual.StopAnimation("Opacity");
+            visual.Opacity = 0;
+            return;
+        }
+        var c = visual.Compositor;
+        visual.CenterPoint = new System.Numerics.Vector3(4, 4, 0);
+        var ease = c.CreateCubicBezierEasingFunction(new System.Numerics.Vector2(0.2f, 0.6f), new System.Numerics.Vector2(0.3f, 1f));
+        var scale = c.CreateVector3KeyFrameAnimation();
+        scale.InsertKeyFrame(0f, new System.Numerics.Vector3(1, 1, 1));
+        scale.InsertKeyFrame(1f, new System.Numerics.Vector3(2.8f, 2.8f, 1), ease);
+        scale.Duration = TimeSpan.FromSeconds(2.4);
+        scale.IterationBehavior = Microsoft.UI.Composition.AnimationIterationBehavior.Count;
+        scale.IterationCount = 3;
+        var fade = c.CreateScalarKeyFrameAnimation();
+        fade.InsertKeyFrame(0f, 0.45f);
+        fade.InsertKeyFrame(1f, 0f, ease);
+        fade.Duration = TimeSpan.FromSeconds(2.4);
+        fade.IterationBehavior = Microsoft.UI.Composition.AnimationIterationBehavior.Count;
+        fade.IterationCount = 3;
+        visual.StartAnimation("Scale", scale);
+        visual.StartAnimation("Opacity", fade);
     }
 
     private void OnRecordingClicked(object sender, RoutedEventArgs e)

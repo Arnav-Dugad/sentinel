@@ -7,49 +7,50 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Updates" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Windows Update history, read from the Windows Update Agent. Sentinel never searches for, downloads or installs updates." Style="{StaticResource PageSubtitleTextStyle}" />
-                <HyperlinkButton Content="Open Windows Update" NavigateUri="ms-settings:windowsupdate" Padding="0" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Updates" Subtitle="Windows Update history, read from the Windows Update Agent. Sentinel never searches for, downloads or installs updates.">
+                <c:PageHeader.Footer>
+                    <HyperlinkButton Padding="0" Content="Open Windows Update" NavigateUri="ms-settings:windowsupdate" />
+                </c:PageHeader.Footer>
+            </c:PageHeader>
 
-            <InfoBar IsOpen="{x:Bind Vm.RebootRequired, Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Restart pending"
+            <InfoBar IsOpen="{x:Bind Vm.RebootRequired, Mode=OneWay}" Visibility="{x:Bind local:Bool.Vis(Vm.RebootRequired), Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Restart pending"
                      Message="Windows reports that a restart is required to finish installing updates." />
 
             <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Last 30 days" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Last 30 days" Glyph="&#xE9D2;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Counts, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Stability around updates" Style="{StaticResource SectionTitleTextStyle}" />
-                        <TextBlock Text="{x:Bind Vm.Correlation, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                        <c:CardHeader Title="Stability around updates" Glyph="&#xE9D5;" Margin="0,0,0,4" />
+                        <TextBlock Text="{x:Bind Vm.Correlation, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
                     </StackPanel>
                 </Border>
             </c:AdaptiveGrid>
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="10">
-                    <Grid>
-                        <TextBlock Text="History" Style="{StaticResource SectionTitleTextStyle}" />
-                        <ComboBox HorizontalAlignment="Right" ItemsSource="{x:Bind Vm.Kinds}" SelectedIndex="{x:Bind Vm.KindIndex, Mode=TwoWay}" MinWidth="240" AutomationProperties.Name="Update type" />
-                    </Grid>
+                    <c:CardHeader Title="History" Glyph="&#xE81C;">
+                        <c:CardHeader.Actions>
+                            <ComboBox ItemsSource="{x:Bind Vm.Kinds}" SelectedIndex="{x:Bind Vm.KindIndex, Mode=TwoWay}" MinWidth="240" AutomationProperties.Name="Update type" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Updates}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:UpdateRow">
-                                <Grid ColumnSpacing="12" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                <Grid ColumnSpacing="16" Padding="0,10" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource DividerBrush}">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="132" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{x:Bind Date}" Style="{StaticResource MutedTextStyle}" />
-                                    <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{x:Bind Date}" Style="{StaticResource MutedTextStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                    <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
                                         <TextBlock Text="{x:Bind Kind}" Style="{StaticResource LabelTextStyle}" />
                                     </StackPanel>

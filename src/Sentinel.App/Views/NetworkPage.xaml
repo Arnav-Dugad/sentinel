@@ -7,20 +7,14 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <Grid Margin="0,16,0,0" ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Network" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-                </StackPanel>
-                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-            </Grid>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Network" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}">
+                <c:PageHeader.Actions>
+                    <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                </c:PageHeader.Actions>
+            </c:PageHeader>
 
-            <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.LocationHint), Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Wi-Fi details need location access"
+            <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.LocationHint), Mode=OneWay}" Visibility="{x:Bind local:Bool.HasText(Vm.LocationHint), Mode=OneWay}" IsClosable="False" Severity="Informational" Title="Wi-Fi details need location access"
                      Message="{x:Bind Vm.LocationHint, Mode=OneWay}">
                 <InfoBar.ActionButton>
                     <HyperlinkButton Content="Open location settings" NavigateUri="ms-settings:privacy-location" />
@@ -29,18 +23,19 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Throughput" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Throughput" Glyph="&#xE9D2;" />
                     <c:SentinelChart x:Name="Chart" Height="220" AutomationProperties.Name="Network throughput chart" />
                 </StackPanel>
             </Border>
 
-            <Grid>
-                <TextBlock Text="Adapters" Style="{StaticResource SectionTitleTextStyle}" VerticalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
-                    <ToggleSwitch IsOn="{x:Bind Vm.ShowInactive, Mode=TwoWay}" OnContent="Showing all adapters" OffContent="Connected only" MinWidth="0" />
-                    <ToggleSwitch IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing addresses" OffContent="Show sensitive identifiers" MinWidth="0" />
-                </StackPanel>
-            </Grid>
+            <c:CardHeader Title="Adapters" Glyph="&#xE839;">
+                <c:CardHeader.Actions>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <ToggleSwitch IsOn="{x:Bind Vm.ShowInactive, Mode=TwoWay}" OnContent="Showing all adapters" OffContent="Connected only" MinWidth="0" />
+                        <ToggleSwitch IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing addresses" OffContent="Show sensitive identifiers" MinWidth="0" />
+                    </StackPanel>
+                </c:CardHeader.Actions>
+            </c:CardHeader>
 
             <ItemsRepeater ItemsSource="{x:Bind Vm.Adapters}">
                 <ItemsRepeater.Layout><StackLayout Spacing="16" /></ItemsRepeater.Layout>
@@ -77,10 +72,11 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <Grid>
-                        <TextBlock Text="Connections (48 hours)" Style="{StaticResource SectionTitleTextStyle}" />
-                        <HyperlinkButton Content="Run a network test" HorizontalAlignment="Right" Click="OnTestClick" Padding="4,0" />
-                    </Grid>
+                    <c:CardHeader Title="Connections (48 hours)" Glyph="&#xE839;">
+                        <c:CardHeader.Actions>
+                            <HyperlinkButton Content="Run a network test" Click="OnTestClick" Padding="4,0" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <TextBlock Text="No connection changes were recorded." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Events.Count), Mode=OneWay}" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>

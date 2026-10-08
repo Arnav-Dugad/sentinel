@@ -20,6 +20,13 @@ public interface IGpuTelemetryProvider : ITelemetryProvider
     IReadOnlyList<GpuSnapshot> Latest { get; }
     /// <summary>Per-process GPU utilisation from Windows GPU engine counters (pid → percent).</summary>
     IReadOnlyDictionary<int, double> ProcessUtilization { get; }
+
+    /// <summary>
+    /// The highest board power this adapter can physically draw, in watts: 1.25 × the enforced limit when the vendor
+    /// API reports it, otherwise a conservative class ceiling. Readings above it are driver glitches. Null when the
+    /// adapter has no vendor power telemetry at all.
+    /// </summary>
+    double? PowerCeilingW(string adapterId);
 }
 
 public interface IStorageTelemetryProvider : ITelemetryProvider

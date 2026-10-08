@@ -7,22 +7,21 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Sleep" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Sleep" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}" />
 
-            <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
+            <c:AdaptiveGrid MinItemWidth="400" MaxColumns="1" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Sleep sessions (30 days)" Style="{StaticResource SectionTitleTextStyle}" />
-                        <TextBlock Text="No sleep sessions observed yet." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Sessions.Count), Mode=OneWay}" />
+                        <c:CardHeader Title="Sleep sessions on battery (30 days)" Glyph="&#xE708;" Margin="0,0,0,4" />
+                        <c:EmptyState Glyph="&#xE708;" Title="No sleep on battery yet"
+                                      Message="Sleep drain is measured when this PC sleeps unplugged while Sentinel is running. The next session will appear here."
+                                      Visibility="{x:Bind local:Bool.Zero(Vm.Sessions.Count), Mode=OneWay}" />
                         <ItemsRepeater ItemsSource="{x:Bind Vm.Sessions}">
                             <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:SessionRow">
-                                    <Grid ColumnSpacing="12" Padding="0,6" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                    <Grid ColumnSpacing="12" Padding="0,9" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource DividerBrush}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
@@ -43,10 +42,11 @@
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="8">
-                        <Grid>
-                            <TextBlock Text="Sleep and wake (7 days)" Style="{StaticResource SectionTitleTextStyle}" />
-                            <Button Content="Analyse" HorizontalAlignment="Right" Command="{x:Bind Vm.AnalyseCommand}" />
-                        </Grid>
+                        <c:CardHeader Title="Sleep and wake (7 days)" Glyph="&#xE81C;">
+                            <c:CardHeader.Actions>
+                                <Button Content="Analyze" Command="{x:Bind Vm.AnalyseCommand}" />
+                            </c:CardHeader.Actions>
+                        </c:CardHeader>
                         <StackPanel Spacing="10" Visibility="{x:Bind local:Bool.Vis(Vm.Diagnosis.HasResult), Mode=OneWay}">
                             <TextBlock Text="{x:Bind Vm.Diagnosis.Summary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
                             <c:EvidenceList Items="{x:Bind Vm.Diagnosis.Findings, Mode=OneWay}" />
@@ -55,15 +55,17 @@
                             <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:EventRow">
-                                    <Grid ColumnSpacing="12" Padding="0,4">
+                                    <Grid ColumnSpacing="14" Padding="0,7" ToolTipService.ToolTip="{x:Bind FullTime}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="132" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                        <TextBlock Grid.Column="1" Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
-                                        <StackPanel Grid.Column="2">
+                                        <Border Width="30" Height="30" CornerRadius="15" Background="{ThemeResource SurfaceSunkenBrush}" VerticalAlignment="Top">
+                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" Margin="0,5,0,0" TextWrapping="NoWrap" />
+                                        <StackPanel Grid.Column="2" Margin="0,5,0,0" Spacing="2">
                                             <TextBlock Text="{x:Bind Title}" />
                                             <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" TextWrapping="Wrap" />
                                         </StackPanel>
@@ -77,7 +79,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="About sleep data" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="About sleep data" Glyph="&#xE946;" Margin="0,0,0,6" />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="Sentinel measures sleep drain by comparing the battery's charge just before sleep and just after waking, and reads wake sources from Windows' power log. Which apps hold the PC awake, wake timers and the Sleep Study report are only available to administrators, so Sentinel does not collect them." />
                 </StackPanel>
             </Border>

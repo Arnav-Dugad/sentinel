@@ -123,6 +123,8 @@ public sealed class SimulatedGpuProvider(SimulationWorld w) : SimulatedProvider(
     public IReadOnlyList<GpuSnapshot> Latest { get; private set; } = [];
     public IReadOnlyDictionary<int, double> ProcessUtilization { get; private set; } = new Dictionary<int, double>();
 
+    public double? PowerCeilingW(string adapterId) => 175;
+
     public override Task SampleAsync(SampleContext ctx, CancellationToken ct)
     {
         var d = Math.Clamp(World.GpuUtil, 0, 100);

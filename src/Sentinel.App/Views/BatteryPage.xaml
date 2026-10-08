@@ -8,42 +8,37 @@
 
     <Grid>
         <c:EmptyState Visibility="{x:Bind local:Bool.Not(Vm.HasBattery), Mode=OneWay}" Glyph="&#xE83F;" VerticalAlignment="Center"
-                      Title="This PC has no battery" Message="Battery Lab is available on laptops and tablets. Power and sleep behaviour are still shown on the Power and Sleep pages." />
+                      Title="This PC has no battery" Message="Battery Lab is available on laptops and tablets. Power and sleep behavior are still shown on the Power and Sleep pages." />
         <ScrollViewer Visibility="{x:Bind local:Bool.Vis(Vm.HasBattery), Mode=OneWay}">
-            <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-                <StackPanel Margin="0,16,0,0" Spacing="8">
-                    <TextBlock Text="Battery Lab" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="Health, charge sessions and what drains your battery, from the battery's own firmware readings." Style="{StaticResource PageSubtitleTextStyle}" />
-                </StackPanel>
+            <StackPanel Style="{StaticResource PageContentStyle}">
+                <c:PageHeader Title="Battery Lab" Subtitle="Health, charge sessions and what drains your battery, from the battery's own firmware readings." />
 
-                <Border Style="{StaticResource CardStyle}">
-                    <c:AdaptiveGrid MinItemWidth="200">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Charge" Style="{StaticResource LabelTextStyle}" />
-                            <TextBlock Text="{x:Bind Vm.Percent, Mode=OneWay}" FontSize="40" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display" />
-                            <ProgressBar Value="{x:Bind Vm.ChargeValue, Mode=OneWay}" Maximum="100" />
-                            <TextBlock Text="{x:Bind Vm.State, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
-                        </StackPanel>
-                        <c:MetricTile Label="Power" Glyph="&#xE945;" Value="{x:Bind Vm.Rate, Mode=OneWay}" Caption="{x:Bind Vm.RateCaption, Mode=OneWay}" Provenance="Battery charge/discharge rate reported by firmware" />
-                        <c:MetricTile Label="Energy remaining" Glyph="&#xE83F;" Value="{x:Bind Vm.Remaining, Mode=OneWay}" Caption="{x:Bind Vm.RemainingCaption, Mode=OneWay}" />
-                        <c:MetricTile Label="Estimated health" Glyph="&#xE95E;" Value="{x:Bind Vm.Health, Mode=OneWay}" Caption="{x:Bind Vm.HealthCaption, Mode=OneWay}"
-                                      Provenance="Battery Health = Full Charge Capacity / Design Capacity × 100 (estimate from reported capacities)" />
-                    </c:AdaptiveGrid>
-                </Border>
+                <c:AdaptiveGrid MinItemWidth="200">
+                    <c:MetricTile Label="Charge" Glyph="&#xE83F;" Value="{x:Bind Vm.Percent, Mode=OneWay}" Caption="{x:Bind Vm.State, Mode=OneWay}" Provenance="Remaining capacity reported by the battery's firmware">
+                        <c:MetricTile.Footer>
+                            <ProgressBar Value="{x:Bind Vm.ChargeValue, Mode=OneWay}" Maximum="100" AutomationProperties.Name="Charge level" />
+                        </c:MetricTile.Footer>
+                    </c:MetricTile>
+                    <c:MetricTile Label="Power" Glyph="&#xE945;" Value="{x:Bind Vm.Rate, Mode=OneWay}" Caption="{x:Bind Vm.RateCaption, Mode=OneWay}" Provenance="Battery charge/discharge rate reported by firmware" />
+                    <c:MetricTile Label="Energy remaining" Glyph="&#xE9D2;" Value="{x:Bind Vm.Remaining, Mode=OneWay}" Caption="{x:Bind Vm.RemainingCaption, Mode=OneWay}" />
+                    <c:MetricTile Label="Estimated health" Glyph="&#xE95E;" Value="{x:Bind Vm.Health, Mode=OneWay}" Caption="{x:Bind Vm.HealthCaption, Mode=OneWay}"
+                                  Provenance="Battery Health = Full Charge Capacity / Design Capacity × 100 (estimate from reported capacities)" />
+                </c:AdaptiveGrid>
 
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="12">
-                        <Grid>
-                            <TextBlock Text="Charge and power" Style="{StaticResource SectionTitleTextStyle}" />
-                            <c:RangeSelector HorizontalAlignment="Right" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-                        </Grid>
+                        <c:CardHeader Title="Charge and power" Glyph="&#xE9D2;">
+                            <c:CardHeader.Actions>
+                                <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                            </c:CardHeader.Actions>
+                        </c:CardHeader>
                         <c:SentinelChart x:Name="Chart" Height="230" AutomationProperties.Name="Battery charge chart" />
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Battery health timeline" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Battery health timeline" Glyph="&#xE83F;" />
                         <c:SentinelChart x:Name="CapacityChart" Height="200" AutomationProperties.Name="Battery capacity history chart" />
                         <TextBlock Text="{x:Bind Vm.CapacityNote, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -58,14 +53,14 @@
                 <c:AdaptiveGrid MinItemWidth="380" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="Drain detective" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Drain detective" Glyph="&#xE83F;" Margin="0,0,0,2" />
                             <TextBlock Text="{x:Bind Vm.DrainSummary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
                             <c:EvidenceList Items="{x:Bind Vm.DrainFindings, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <TextBlock Text="Battery" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Battery" Glyph="&#xE83F;" Margin="0,0,0,12" />
                             <c:InfoList Items="{x:Bind Vm.Details, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
@@ -73,7 +68,7 @@
 
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Sessions (14 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Sessions (14 days)" Glyph="&#xE83F;" Margin="0,0,0,4" />
                         <TextBlock Text="Sessions appear as Sentinel observes plugging in, unplugging and sleep." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Sessions.Count), Mode=OneWay}" />
                         <ItemsRepeater ItemsSource="{x:Bind Vm.Sessions}">
                             <ItemsRepeater.Layout><StackLayout Spacing="4" /></ItemsRepeater.Layout>

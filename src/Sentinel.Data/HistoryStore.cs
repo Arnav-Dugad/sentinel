@@ -94,7 +94,7 @@ public sealed class HistoryStore : IDisposable
         await _writeGate.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            var c = _writer ?? throw new InvalidOperationException("HistoryStore not initialised.");
+            var c = _writer ?? throw new InvalidOperationException("HistoryStore not initialized.");
             using var tx = c.BeginTransaction();
             work(c, tx);
             tx.Commit();
@@ -416,6 +416,29 @@ public sealed class HistoryStore : IDisposable
             if (fi.Exists) size += fi.Length;
         }
         return size;
+    }
+
+    /// <summary>
+    /// Removes samples of one metric whose peak exceeds a physical limit (e.g. GPU power above its enforced limit).
+    /// Used to repair readings a driver returned while a device was changing power state. Returns rows removed.
+    /// </summary>
+    public async Task<int> DeleteSamplesAboveAsync(string key, double limit, CancellationToken ct = default)
+    {
+        if (TryMetricId(key) is not { } id) return 0;
+        var removed = 0;
+        await WriteAsync((c, tx) =>
+        {
+            foreach (var t in new[] { "sample_10s", "sample_1m", "sample_1h" })
+            {
+                using var cmd = c.CreateCommand();
+                cmd.Transaction = tx;
+                cmd.CommandText = $"DELETE FROM {t} WHERE metric_id = $m AND max > $limit";
+                cmd.Parameters.AddWithValue("$m", id);
+                cmd.Parameters.AddWithValue("$limit", limit);
+                removed += cmd.ExecuteNonQuery();
+            }
+        }, ct).ConfigureAwait(false);
+        return removed;
     }
 
     public async Task ClearAllHistoryAsync(CancellationToken ct = default)

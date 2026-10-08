@@ -7,49 +7,33 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <Grid Margin="0,16,0,0" ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="CPU" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Name, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Subtitle, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
-                </StackPanel>
-                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-            </Grid>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="CPU" Subtitle="{x:Bind Vm.Name, Mode=OneWay}" Detail="{x:Bind Vm.Subtitle, Mode=OneWay}">
+                <c:PageHeader.Actions>
+                    <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                </c:PageHeader.Actions>
+            </c:PageHeader>
 
 
             <c:AdaptiveGrid MinItemWidth="190">
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Utilization" Glyph="&#xE9D2;" Value="{x:Bind Vm.Utilization, Mode=OneWay}" Caption="All logical processors" Provenance="Windows Processor Information counters (% Processor Utility)" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Effective clock" Glyph="&#xEC4A;" Value="{x:Bind Vm.Clock, Mode=OneWay}" Caption="{x:Bind Vm.ClockCaption, Mode=OneWay}" Provenance="Base frequency × % Processor Performance (Windows counters)" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Temperature" Glyph="&#xE9CA;" Value="{x:Bind Vm.Temperature, Mode=OneWay}" Caption="{x:Bind Vm.TemperatureCaption, Mode=OneWay}" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Package power" Glyph="&#xE945;" Value="{x:Bind Vm.Power, Mode=OneWay}" Caption="{x:Bind Vm.PowerCaption, Mode=OneWay}" />
-                </Border>
-                <Border Style="{StaticResource CompactCardStyle}">
-                    <c:MetricTile Label="Performance limit" Glyph="&#xE7BA;" Value="{x:Bind Vm.Limitation, Mode=OneWay}" Caption="Power, thermal or policy limiting" Provenance="Windows counter: 100 − % Performance Limit" />
-                </Border>
+                <c:MetricTile Label="Utilization" Glyph="&#xE9D2;" Value="{x:Bind Vm.Utilization, Mode=OneWay}" Caption="All logical processors" Provenance="Windows Processor Information counters (% Processor Utility)" />
+                <c:MetricTile Label="Effective clock" Glyph="&#xEC4A;" Value="{x:Bind Vm.Clock, Mode=OneWay}" Caption="{x:Bind Vm.ClockCaption, Mode=OneWay}" Provenance="Base frequency × % Processor Performance (Windows counters)" />
+                <c:MetricTile Label="Temperature" Glyph="&#xE9CA;" Value="{x:Bind Vm.Temperature, Mode=OneWay}" Caption="{x:Bind Vm.TemperatureCaption, Mode=OneWay}" />
+                <c:MetricTile Label="Package power" Glyph="&#xE945;" Value="{x:Bind Vm.Power, Mode=OneWay}" Caption="{x:Bind Vm.PowerCaption, Mode=OneWay}" />
+                <c:MetricTile Label="Performance limit" Glyph="&#xE7BA;" Value="{x:Bind Vm.Limitation, Mode=OneWay}" Caption="Power, thermal or policy limiting" Provenance="Windows counter: 100 − % Performance Limit" />
             </c:AdaptiveGrid>
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <Grid>
-                        <TextBlock Text="Activity" Style="{StaticResource SectionTitleTextStyle}" />
-                        <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
-                            <CheckBox Content="Clock" IsChecked="{x:Bind Vm.ShowClock, Mode=TwoWay}" MinWidth="0" />
-                            <CheckBox Content="Power" IsChecked="{x:Bind Vm.ShowPower, Mode=TwoWay}" MinWidth="0" />
-                            <CheckBox Content="Temperature" IsChecked="{x:Bind Vm.ShowTemperature, Mode=TwoWay}" MinWidth="0" />
-                        </StackPanel>
-                    </Grid>
+                    <c:CardHeader Title="Activity" Glyph="&#xE9D2;">
+                        <c:CardHeader.Actions>
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <CheckBox Content="Clock" IsChecked="{x:Bind Vm.ShowClock, Mode=TwoWay}" MinWidth="0" />
+                                <CheckBox Content="Power" IsChecked="{x:Bind Vm.ShowPower, Mode=TwoWay}" MinWidth="0" />
+                                <CheckBox Content="Temperature" IsChecked="{x:Bind Vm.ShowTemperature, Mode=TwoWay}" MinWidth="0" />
+                            </StackPanel>
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <c:SentinelChart x:Name="Chart" Height="260" AllowZoom="False" AutomationProperties.Name="CPU utilization chart" />
                     <TextBlock Text="Lines other than utilization use their own scale; hover to read exact values. Dashed: performance limitation." Style="{StaticResource LabelTextStyle}" />
                 </StackPanel>
@@ -67,7 +51,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Logical processors" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Logical processors" Glyph="&#xE950;" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Cores}">
                         <ItemsRepeater.Layout>
                             <UniformGridLayout MinItemWidth="96" MinRowSpacing="8" MinColumnSpacing="8" ItemsStretch="Fill" />
@@ -96,13 +80,13 @@
             <c:AdaptiveGrid MinItemWidth="380" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Scheduler" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Scheduler" Glyph="&#xE950;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Activity, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Processor" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Processor" Glyph="&#xE950;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Inventory, Mode=OneWay}" />
                     </StackPanel>
                 </Border>

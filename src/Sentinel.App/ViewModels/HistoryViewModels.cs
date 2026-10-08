@@ -90,8 +90,8 @@ public sealed partial class CompareViewModel : PageViewModel
                 CompareSessions(sessions[1], sessions[0]);
                 _a = new TimeRange(sessions[1].Start, sessions[1].End, "previous session");
                 _b = new TimeRange(sessions[0].Start, sessions[0].End, "latest session");
-                LabelA = $"Previous: {sessions[1].AppName ?? "session"} · {sessions[1].Start:g}";
-                LabelB = $"Latest: {sessions[0].AppName ?? "session"} · {sessions[0].Start:g}";
+                LabelA = $"Previous: {sessions[1].AppName ?? "session"} · {UnitFormatter.Absolute(sessions[1].Start)}";
+                LabelB = $"Latest: {sessions[0].AppName ?? "session"} · {UnitFormatter.Absolute(sessions[0].Start)}";
                 BuildChart();
                 return;
             }
@@ -107,12 +107,12 @@ public sealed partial class CompareViewModel : PageViewModel
                 }
                 _a = new TimeRange(change.Timestamp.AddDays(-7), change.Timestamp, "7 days before");
                 _b = new TimeRange(change.Timestamp, change.Timestamp.AddDays(7) < now ? change.Timestamp.AddDays(7) : now, "after");
-                Note = $"Change: {change.Title} on {change.Timestamp:g}. Workloads differ between periods, so treat differences as indicative.";
+                Note = $"Change: {change.Title} on {UnitFormatter.Absolute(change.Timestamp)}. Workloads differ between periods, so treat differences as indicative.";
                 break;
             }
         }
-        LabelA = $"A: {_a.Label} ({_a.From:g} – {_a.To:g})";
-        LabelB = $"B: {_b.Label} ({_b.From:g} – {_b.To:g})";
+        LabelA = $"A: {_a.Label} ({UnitFormatter.Absolute(_a.From)} – {UnitFormatter.Absolute(_a.To)})";
+        LabelB = $"B: {_b.Label} ({UnitFormatter.Absolute(_b.From)} – {UnitFormatter.Absolute(_b.To)})";
         var deltas = Services.GetRequiredService<TimelineService>().Compare(_a, _b);
         foreach (var d in deltas) Deltas.Add(new DeltaRow(d.Name, d.BeforeText, d.AfterText, d.DeltaText));
         if (preset != 4) Note = deltas.Count == 0 ? "There is no recorded data for these periods yet." : "Averages over each period. Only metrics Sentinel actually recorded are compared.";
@@ -147,7 +147,7 @@ public sealed partial class CompareViewModel : PageViewModel
             MetricUnit.Percent => v => $"{v:F0}%",
             MetricUnit.Watts => v => $"{v:F1} W",
             MetricUnit.Megahertz => v => UnitFormatter.Frequency(v),
-            _ => v => U.Throughput(v),
+            _ => v => U.Rate(m.Key, v),
         };
         var model = new ChartModel { From = _b.From, To = _b.From + TimeSpan.FromTicks(Math.Max(_a.Span.Ticks, _b.Span.Ticks)), YMin = m.Unit == MetricUnit.Percent ? 0 : null, YMax = m.Unit == MetricUnit.Percent ? 100 : null };
         model.Series.Add(new ChartSeries { Name = "A", ColorIndex = 6, Dashed = true, Points = pointsA.Select(p => new ChartPoint(p.T + shift, p.V)).ToList(), Format = f });
@@ -219,7 +219,7 @@ public sealed partial class TimeMachineViewModel : PageViewModel
     private void Reconstruct()
     {
         var at = Moment;
-        MomentLabel = at.ToString("dddd d MMMM yyyy, t", CultureInfo.CurrentCulture);
+        MomentLabel = at.ToString("D", CultureInfo.CurrentCulture) + " · " + at.ToString("t", CultureInfo.CurrentCulture);
         var snap = Services.GetRequiredService<TimelineService>().Reconstruct(at);
         Metrics.Clear();
         foreach (var m in snap.Metrics) Metrics.Add(new SnapshotRow(m.Label, m.Value, m.Source));

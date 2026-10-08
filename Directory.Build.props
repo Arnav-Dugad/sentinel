@@ -9,7 +9,7 @@
     <Deterministic>true</Deterministic>
     <Company>Sentinel</Company>
     <Product>Sentinel</Product>
-    <Version>0.9.0</Version>
+    <Version>0.10.0</Version>
     <Copyright>Sentinel contributors</Copyright>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

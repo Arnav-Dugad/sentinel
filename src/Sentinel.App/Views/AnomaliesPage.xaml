@@ -30,18 +30,15 @@
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Anomalies" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Anomalies" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}" />
 
             <ItemsRepeater ItemsSource="{x:Bind Vm.Active}" ItemTemplate="{StaticResource AnomalyTemplate}">
                 <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
             </ItemsRepeater>
 
             <StackPanel Spacing="12" Visibility="{x:Bind local:Bool.NonZero(Vm.History.Count), Mode=OneWay}">
-                <TextBlock Text="Earlier (30 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                <c:CardHeader Title="Earlier (30 days)" Glyph="&#xE81C;" />
                 <ItemsRepeater ItemsSource="{x:Bind Vm.History}" ItemTemplate="{StaticResource AnomalyTemplate}">
                     <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
                 </ItemsRepeater>
@@ -49,7 +46,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="What Sentinel has learned is normal" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="What Sentinel has learned is normal" Glyph="&#xE9D9;" Margin="0,0,0,2" />
                     <TextBlock Style="{StaticResource MutedTextStyle}" Text="Baselines are learned from this PC's own minute-by-minute history over the last 30 days (median and typical 5th–95th percentile range). They need a few days of data before anomalies are reported, so Sentinel stays quiet until it knows what normal looks like." />
                     <TextBlock Text="No baselines yet — they are computed every six hours once there is enough history." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Baselines.Count), Mode=OneWay}" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Baselines}">

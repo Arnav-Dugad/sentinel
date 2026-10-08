@@ -7,18 +7,12 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <Grid Margin="0,16,0,0" ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Storage" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="Drive health is read through documented, query-only storage interfaces. Sentinel never sends commands to your drives." Style="{StaticResource PageSubtitleTextStyle}" />
-                </StackPanel>
-                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-            </Grid>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Storage" Subtitle="Drive health is read through documented, query-only storage interfaces. Sentinel never sends commands to your drives.">
+                <c:PageHeader.Actions>
+                    <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                </c:PageHeader.Actions>
+            </c:PageHeader>
 
             <ItemsRepeater ItemsSource="{x:Bind Vm.Drives}">
                 <ItemsRepeater.Layout><StackLayout Spacing="16" /></ItemsRepeater.Layout>
@@ -31,27 +25,24 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Text="{x:Bind Model}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
-                                        <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource LabelTextStyle}" />
-                                    </StackPanel>
-                                    <c:StatusPill Grid.Column="1" Status="{x:Bind Status, Mode=OneWay}" Text="{x:Bind StatusText, Mode=OneWay}" VerticalAlignment="Top" />
+                                    <c:CardHeader Title="{x:Bind Model}" Subtitle="{x:Bind Subtitle}" Glyph="&#xEDA2;" />
+                                    <c:StatusPill Grid.Column="1" Status="{x:Bind Status, Mode=OneWay}" Text="{x:Bind StatusText, Mode=OneWay}" VerticalAlignment="Center" />
                                 </Grid>
                                 <TextBlock Text="{x:Bind Summary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
-                                <c:AdaptiveGrid MinItemWidth="140" MaxColumns="6">
-                                    <c:MetricTile Label="Temperature" Value="{x:Bind Temperature, Mode=OneWay}" />
-                                    <c:MetricTile Label="Endurance" Value="{x:Bind Endurance, Mode=OneWay}" />
-                                    <c:MetricTile Label="Read" Value="{x:Bind Read, Mode=OneWay}" />
-                                    <c:MetricTile Label="Write" Value="{x:Bind Write, Mode=OneWay}" />
-                                    <c:MetricTile Label="Active" Value="{x:Bind Active, Mode=OneWay}" />
-                                    <c:MetricTile Label="Response" Value="{x:Bind Latency, Mode=OneWay}" />
+                                <c:AdaptiveGrid MinItemWidth="150" MaxColumns="6" ColumnSpacing="10" RowSpacing="10">
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Temperature" Value="{x:Bind Temperature, Mode=OneWay}" /></Border>
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Endurance" Value="{x:Bind Endurance, Mode=OneWay}" /></Border>
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Read" Value="{x:Bind Read, Mode=OneWay}" /></Border>
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Write" Value="{x:Bind Write, Mode=OneWay}" /></Border>
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Active" Value="{x:Bind Active, Mode=OneWay}" /></Border>
+                                    <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12"><c:MetricTile Chrome="False" Label="Response" Value="{x:Bind Latency, Mode=OneWay}" /></Border>
                                 </c:AdaptiveGrid>
-                                <c:AdaptiveGrid MinItemWidth="360" MaxColumns="2" ColumnSpacing="24">
+                                <c:AdaptiveGrid MinItemWidth="360" MaxColumns="2" ColumnSpacing="32" FillLastRow="False">
                                     <c:InfoList Items="{x:Bind Health, Mode=OneWay}" />
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="Endurance history" Style="{StaticResource EyebrowTextStyle}" />
-                                        <c:Sparkline Points="{x:Bind UsedHistory, Mode=OneWay}" ColorIndex="2" Height="90" />
-                                        <TextBlock Text="{x:Bind HistoryNote, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="ENDURANCE HISTORY" Style="{StaticResource EyebrowTextStyle}" FontSize="11" />
+                                        <c:Sparkline Points="{x:Bind UsedHistory, Mode=OneWay}" ColorIndex="2" Height="90" Visibility="{x:Bind local:Bool.Trend(UsedHistory), Mode=OneWay}" />
+                                        <TextBlock Text="{x:Bind HistoryNote, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
                                     </StackPanel>
                                 </c:AdaptiveGrid>
                             </StackPanel>
@@ -62,14 +53,14 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Disk activity" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Disk activity" Glyph="&#xE9D2;" />
                     <c:SentinelChart x:Name="Chart" Height="220" AutomationProperties.Name="Disk activity chart" />
                 </StackPanel>
             </Border>
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Volumes" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Volumes" Glyph="&#xEDA2;" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Volumes}">
                         <ItemsRepeater.Layout><StackLayout Spacing="14" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>

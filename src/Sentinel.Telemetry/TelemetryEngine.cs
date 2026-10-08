@@ -102,11 +102,11 @@ public sealed class TelemetryEngine : IAsyncDisposable
             var anyAvailable = s.Provider.Capabilities.Count == 0 || s.Provider.Capabilities.Any(c => c.Available);
             s.Status = new ProviderStatus(anyAvailable ? ProviderHealth.Healthy : ProviderHealth.Unavailable,
                 anyAvailable ? null : "Not exposed by this system", null, 0, sw.Elapsed, 0);
-            _log.LogInformation("Provider {Id} initialised in {Ms} ms ({Health})", s.Id, sw.ElapsedMilliseconds, s.Status.Health);
+            _log.LogInformation("Provider {Id} initialized in {Ms} ms ({Health})", s.Id, sw.ElapsedMilliseconds, s.Status.Health);
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
         {
-            s.Status = new ProviderStatus(ProviderHealth.Failed, "Initialisation failed: " + ex.Message, null, 1, sw.Elapsed, 0);
+            s.Status = new ProviderStatus(ProviderHealth.Failed, "Initialization failed: " + ex.Message, null, 1, sw.Elapsed, 0);
             s.NextDue = _time.GetUtcNow() + TimeSpan.FromMinutes(2);
             _log.LogWarning(ex, "Provider {Id} failed to initialise", s.Id);
         }

@@ -7,29 +7,22 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Time Machine" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Pick a moment to see what your PC was doing then." Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Time Machine" Subtitle="Pick a moment to see what your PC was doing then." />
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <CalendarDatePicker Date="{x:Bind Vm.Date, Mode=TwoWay}" AutomationProperties.Name="Date" />
-                        <TextBlock Grid.Column="1" Text="{x:Bind Vm.MomentLabel, Mode=OneWay}" Style="{StaticResource SectionTitleTextStyle}" VerticalAlignment="Center" Margin="12,0,0,0" />
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
-                            <Button Content="−1 h" Command="{x:Bind Vm.StepCommand}" CommandParameter="-60" />
-                            <Button Content="−5 min" Command="{x:Bind Vm.StepCommand}" CommandParameter="-5" />
-                            <Button Content="+5 min" Command="{x:Bind Vm.StepCommand}" CommandParameter="5" />
-                            <Button Content="+1 h" Command="{x:Bind Vm.StepCommand}" CommandParameter="60" />
-                        </StackPanel>
-                    </Grid>
+                    <c:CardHeader Title="{x:Bind Vm.MomentLabel, Mode=OneWay}" Glyph="&#xE823;">
+                        <c:CardHeader.Actions>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <CalendarDatePicker Date="{x:Bind Vm.Date, Mode=TwoWay}" AutomationProperties.Name="Date" Margin="0,0,8,0" />
+                                <Button Content="−1 h" Command="{x:Bind Vm.StepCommand}" CommandParameter="-60" AutomationProperties.Name="Back one hour" />
+                                <Button Content="−5 min" Command="{x:Bind Vm.StepCommand}" CommandParameter="-5" AutomationProperties.Name="Back five minutes" />
+                                <Button Content="+5 min" Command="{x:Bind Vm.StepCommand}" CommandParameter="5" AutomationProperties.Name="Forward five minutes" />
+                                <Button Content="+1 h" Command="{x:Bind Vm.StepCommand}" CommandParameter="60" AutomationProperties.Name="Forward one hour" />
+                            </StackPanel>
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <c:SentinelChart x:Name="Chart" Height="180" AutomationProperties.Name="Activity on the selected day" />
                     <Slider Minimum="0" Maximum="1439" StepFrequency="1" Value="{x:Bind Vm.Minute, Mode=TwoWay}" AutomationProperties.Name="Time of day" />
                     <TextBlock Text="{x:Bind Vm.Note, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
@@ -39,18 +32,20 @@
             <c:AdaptiveGrid MinItemWidth="380" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Hardware at that moment" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Hardware at that moment" Glyph="&#xE772;" Margin="0,0,0,6" />
+                        <c:EmptyState Glyph="&#xE823;" Title="Nothing recorded" Message="Sentinel has no readings for this moment. History exists only for times Sentinel was running."
+                                      Visibility="{x:Bind local:Bool.Zero(Vm.Metrics.Count), Mode=OneWay}" />
                         <ItemsRepeater ItemsSource="{x:Bind Vm.Metrics}">
                             <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="vm:SnapshotRow">
-                                    <Grid ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind Source}">
+                                    <Grid ColumnSpacing="12" Padding="0,3" ToolTipService.ToolTip="{x:Bind Source}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{x:Bind Label}" Style="{StaticResource MutedTextStyle}" />
-                                        <TextBlock Grid.Column="1" Text="{x:Bind Value}" />
+                                        <TextBlock Text="{x:Bind Label}" Style="{StaticResource MutedTextStyle}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Value}" FontWeight="SemiBold" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
@@ -60,13 +55,20 @@
                 <StackPanel Spacing="16">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Events within 20 minutes" Style="{StaticResource SectionTitleTextStyle}" />
-                            <TextBlock Text="None." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Events.Count), Mode=OneWay}" />
+                            <c:CardHeader Title="Events within 20 minutes" Glyph="&#xE81C;" Margin="0,0,0,6" />
+                            <TextBlock Text="No events were recorded within 20 minutes of this moment." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Events.Count), Mode=OneWay}" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:EventRow">
-                                        <StackPanel Orientation="Horizontal" Spacing="12"><TextBlock Text="{x:Bind ShortTime}" Style="{StaticResource MutedTextStyle}" /><TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" /></StackPanel>
+                                        <Grid ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind FullTime}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="64" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{x:Bind ShortTime}" Style="{StaticResource MutedTextStyle}" TextWrapping="NoWrap" />
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Title}" TextWrapping="Wrap" />
+                                        </Grid>
                                     </DataTemplate>
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
@@ -74,7 +76,7 @@
                     </Border>
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Busiest apps" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Busiest apps" Glyph="&#xE9F5;" Margin="0,0,0,6" />
                             <TextBlock Text="No app history for this moment (or Privacy mode was on)." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Apps.Count), Mode=OneWay}" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.Apps}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>

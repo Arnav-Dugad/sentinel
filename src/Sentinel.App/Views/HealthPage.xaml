@@ -7,14 +7,26 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="10">
-                <TextBlock Text="System health" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="{x:Bind Vm.Headline, Mode=OneWay}" Style="{StaticResource HeroTitleTextStyle}" FontSize="24" />
-                <TextBlock Text="{x:Bind Vm.Detail, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-                <c:StatusPill Status="{x:Bind Vm.Overall, Mode=OneWay}" HorizontalAlignment="Left" />
-                <TextBlock Text="{x:Bind Vm.Updated, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="System health" Subtitle="{x:Bind Vm.Updated, Mode=OneWay}" />
+
+            <Grid CornerRadius="{StaticResource RadiusLarge}" BorderThickness="1" BorderBrush="{ThemeResource BorderSubtleBrush}" Background="{ThemeResource SurfaceElevatedBrush}">
+                <Rectangle RadiusX="8" RadiusY="8">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{ThemeResource HeroGradientStartColor}" Offset="0" />
+                            <GradientStop Color="{ThemeResource HeroGradientEndColor}" Offset="0.85" />
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <StackPanel Padding="28,24,28,26" Spacing="10">
+                    <TextBlock Text="{x:Bind Vm.Headline, Mode=OneWay}" Style="{StaticResource HeroTitleTextStyle}" FontSize="26" LineHeight="34" />
+                    <TextBlock Text="{x:Bind Vm.Detail, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" MaxWidth="760" HorizontalAlignment="Left" />
+                    <c:StatusPill Status="{x:Bind Vm.Overall, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,4,0,0" />
+                </StackPanel>
+            </Grid>
+
+            <c:CardHeader Title="Areas" Subtitle="Each area shows its own status, the confidence behind it and the evidence. Expand one to see why." Margin="0,4,0,-12" />
 
             <ItemsRepeater ItemsSource="{x:Bind Vm.Categories}">
                 <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
@@ -22,13 +34,13 @@
                     <DataTemplate x:DataType="vm:HealthCategoryCard">
                         <Expander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{x:Bind Name}">
                             <Expander.Header>
-                                <Grid ColumnSpacing="16" Padding="0,10">
+                                <Grid ColumnSpacing="16" Padding="0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" FontSize="15" />
                                         <TextBlock Text="{x:Bind Summary}" Style="{StaticResource LabelTextStyle}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">

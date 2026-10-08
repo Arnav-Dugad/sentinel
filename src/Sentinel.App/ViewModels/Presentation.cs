@@ -1,6 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Sentinel.App.Controls;
+using Sentinel.Core.Units;
 using Sentinel.Domain;
 
 namespace Sentinel.App.ViewModels;
@@ -36,7 +37,9 @@ public static class EventGlyphs
 /// <summary>One row in an event list. Severity is conveyed by icon and text, not colour alone.</summary>
 public sealed record EventRow(SystemEvent Event)
 {
-    public string Time => Event.Timestamp.ToString(Event.Timestamp.Date == DateTime.Today ? "t" : "MMM d, t", CultureInfo.CurrentCulture);
+    public string Time => UnitFormatter.When(Event.Timestamp);
+
+    public string FullTime => UnitFormatter.Full(Event.Timestamp);
     public string ShortTime => Event.Timestamp.ToString("t", CultureInfo.CurrentCulture);
     public string Title => Event.Title;
     public string Detail => Event.Detail ?? SystemEvent.CategoryLabel(Event.Category);

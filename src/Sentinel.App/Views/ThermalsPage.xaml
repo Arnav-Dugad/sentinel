@@ -7,25 +7,20 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <Grid Margin="0,16,0,0" ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Thermals" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="Every temperature Sentinel can read safely, with its source. Overlaying load and power shows cause and effect." Style="{StaticResource PageSubtitleTextStyle}" />
-                </StackPanel>
-                <c:RangeSelector Grid.Column="1" VerticalAlignment="Bottom" SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
-            </Grid>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Thermals" Subtitle="Every temperature Sentinel can read safely, with its source. Overlaying load and power shows cause and effect.">
+                <c:PageHeader.Actions>
+                    <c:RangeSelector SelectedKey="{x:Bind Vm.RangeKey, Mode=TwoWay}" />
+                </c:PageHeader.Actions>
+            </c:PageHeader>
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <Grid>
-                        <TextBlock Text="Thermal timeline" Style="{StaticResource SectionTitleTextStyle}" />
-                        <Button Content="Why is my PC hot?" HorizontalAlignment="Right" Command="{x:Bind Vm.DiagnoseCommand}" />
-                    </Grid>
+                    <c:CardHeader Title="Thermal timeline" Glyph="&#xE9D2;">
+                        <c:CardHeader.Actions>
+                            <Button Content="Why is my PC hot?" Command="{x:Bind Vm.DiagnoseCommand}" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <c:SentinelChart x:Name="Chart" Height="280" AutomationProperties.Name="Thermal timeline" />
                     <TextBlock Text="Temperatures share the left scale; load and power use their own scales. Hover to compare values at the same moment." Style="{StaticResource LabelTextStyle}" />
                 </StackPanel>
@@ -41,7 +36,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Sensors" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Sensors" Glyph="&#xE9CA;" Margin="0,0,0,4" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Sensors}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
@@ -69,7 +64,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Not available on this PC" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Not available on this PC" Glyph="&#xE946;" Margin="0,0,0,4" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Unavailable}">
                         <ItemsRepeater.Layout><StackLayout Spacing="8" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>

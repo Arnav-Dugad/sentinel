@@ -6,45 +6,71 @@
     xmlns:vm="using:Sentinel.App.ViewModels"
     xmlns:c="using:Sentinel.App.Controls">
 
-    <Grid MaxWidth="980" Padding="{StaticResource PagePadding}" RowSpacing="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel Margin="0,16,0,0" Spacing="8">
-            <TextBlock Text="Ask Sentinel" Style="{StaticResource PageTitleTextStyle}" />
-            <TextBlock Text="{x:Bind Vm.AiStatus, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-        </StackPanel>
+    <ScrollViewer>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Ask Sentinel" Subtitle="{x:Bind Vm.AiStatus, Mode=OneWay}" />
 
-        <StackPanel Grid.Row="1" Spacing="10">
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="QuestionBox" PlaceholderText="Ask about temperatures, battery, crashes, storage, memory, drivers, sleep…" Text="{x:Bind Vm.Question, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         KeyDown="OnKeyDown" AutomationProperties.Name="Question" />
-                <Button Grid.Column="1" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind Vm.AskCommand}" AutomationProperties.Name="Ask">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <ProgressRing IsActive="{x:Bind Vm.IsBusy, Mode=OneWay}" Width="16" Height="16" Visibility="{x:Bind local:Bool.Vis(Vm.IsBusy), Mode=OneWay}" />
-                        <TextBlock Text="Ask" />
+            <!-- Composer -->
+            <Border Style="{StaticResource CardStyle}" Padding="8">
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE8BD;" FontSize="16" Margin="12,0,4,0" Foreground="{ThemeResource AccentGlyphBrush}" VerticalAlignment="Center" />
+                    <TextBox x:Name="QuestionBox" Grid.Column="1" MinHeight="40" FontSize="15" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center"
+                             PlaceholderText="Ask about temperatures, battery, crashes, storage, memory, drivers, sleep…"
+                             Text="{x:Bind Vm.Question, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnKeyDown" AutomationProperties.Name="Question" />
+                    <Button Grid.Column="2" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind Vm.AskCommand}" MinHeight="40" Padding="18,0" AutomationProperties.Name="Ask">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ProgressRing IsActive="{x:Bind Vm.IsBusy, Mode=OneWay}" Width="16" Height="16" Visibility="{x:Bind local:Bool.Vis(Vm.IsBusy), Mode=OneWay}" />
+                            <FontIcon Glyph="&#xE724;" FontSize="14" Visibility="{x:Bind local:Bool.Not(Vm.IsBusy), Mode=OneWay}" />
+                            <TextBlock Text="Ask" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Thinking -->
+            <Border Style="{StaticResource CardStyle}" Visibility="{x:Bind local:Bool.Vis(Vm.IsBusy), Mode=OneWay}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Width="24" Height="24" CornerRadius="6" Background="{ThemeResource AccentSubtleBrush}">
+                            <FontIcon Glyph="&#xE945;" FontSize="12" Foreground="{ThemeResource AccentGlyphBrush}" />
+                        </Border>
+                        <TextBlock Text="Looking through this PC's records…" Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
                     </StackPanel>
-                </Button>
-            </Grid>
-            <ItemsRepeater ItemsSource="{x:Bind Vm.Suggestions}" Visibility="{x:Bind local:Bool.Zero(Vm.Answers.Count), Mode=OneWay}">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="280" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="Fill" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <Button Content="{x:Bind}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Click="OnSuggestion" />
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </StackPanel>
+                    <ProgressBar IsIndeterminate="True" />
+                </StackPanel>
+            </Border>
 
-        <ScrollViewer Grid.Row="2">
+            <!-- First run: suggestions -->
+            <Border Style="{StaticResource CardStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Answers.Count), Mode=OneWay}">
+                <StackPanel Spacing="18">
+                    <StackPanel Spacing="10" HorizontalAlignment="Center" Margin="0,8,0,0">
+                        <Border Width="52" Height="52" CornerRadius="26" Background="{ThemeResource AccentSubtleBrush}" HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE8BD;" FontSize="22" Foreground="{ThemeResource AccentGlyphBrush}" />
+                        </Border>
+                        <TextBlock Text="Ask anything about this PC" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Answers come from what Sentinel has recorded, with every finding labelled observed, inferred or possible." Style="{StaticResource MutedTextStyle}"
+                                   TextAlignment="Center" MaxWidth="520" HorizontalAlignment="Center" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{x:Bind Vm.Suggestions}" IsTabStop="False" MaxWidth="900">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <c:WrapPanel HorizontalSpacing="8" VerticalSpacing="10" CenterLines="True" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Button Content="{x:Bind}" Style="{StaticResource SuggestionButtonStyle}" Click="OnSuggestion" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <ItemsRepeater ItemsSource="{x:Bind Vm.Answers}">
                 <ItemsRepeater.Layout><StackLayout Spacing="16" /></ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
@@ -98,6 +124,6 @@
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
-        </ScrollViewer>
-    </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </local:SentinelPage>

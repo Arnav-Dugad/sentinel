@@ -64,11 +64,12 @@ public sealed partial class GpuViewModel : PageViewModel
         Utilization = UnitFormatter.Percent(s.Utilization.Value);
         Temperature = s.Temperature.HasValue ? U.Temperature(s.Temperature.Value) : s.InLowPowerState ? "Resting" : "Not exposed";
         var limits = P.Gpu is GpuProvider gp ? gp.TemperatureLimits(a.Id) : (null, null);
-        TemperatureCaption = s.Temperature.HasValue ? (limits.Slowdown is { } sl ? $"Driver slowdown threshold {U.Temperature(sl)}" : s.Temperature.Source) : s.Temperature.Reason ?? "";
-        Power = s.PowerW.HasValue ? UnitFormatter.Watts(s.PowerW.Value) : "—";
-        PowerCaption = s.PowerLimitW.HasValue ? $"Limit {UnitFormatter.Watts(s.PowerLimitW.Value, 0)}" : s.PowerW.Reason ?? "";
-        Clock = s.CoreClockMhz.HasValue ? UnitFormatter.Frequency(s.CoreClockMhz.Value) : "—";
-        ClockCaption = s.MemoryClockMhz.HasValue ? $"Memory {UnitFormatter.Frequency(s.MemoryClockMhz.Value)}" : "";
+        TemperatureCaption = s.Temperature.HasValue ? (limits.Slowdown is { } sl ? $"Driver slows down at {U.Temperature(sl)}" : s.Temperature.Source)
+            : s.InLowPowerState ? "Not read while resting" : s.Temperature.Reason ?? "";
+        Power = s.PowerW.HasValue ? UnitFormatter.Watts(s.PowerW.Value) : s.InLowPowerState ? "Resting" : "—";
+        PowerCaption = s.PowerLimitW.HasValue ? $"Limit {UnitFormatter.Watts(s.PowerLimitW.Value, 0)}" : s.InLowPowerState ? "Not read while resting" : s.PowerW.Reason ?? "";
+        Clock = s.CoreClockMhz.HasValue ? UnitFormatter.Frequency(s.CoreClockMhz.Value) : s.InLowPowerState ? "Resting" : "—";
+        ClockCaption = s.MemoryClockMhz.HasValue ? $"Memory {UnitFormatter.Frequency(s.MemoryClockMhz.Value)}" : s.InLowPowerState ? "Not read while resting" : s.CoreClockMhz.Reason ?? "";
         Vram = s.DedicatedUsedBytes.HasValue ? U.Bytes(s.DedicatedUsedBytes.Value) : "—";
         VramCaption = a.DedicatedVideoMemory > 0 ? $"of {U.Bytes(a.DedicatedVideoMemory)} dedicated" + (s.SharedUsedBytes.HasValue ? $" · {U.Bytes(s.SharedUsedBytes.Value)} shared" : "") : "Uses shared system memory";
         LowPowerNote = s.InLowPowerState

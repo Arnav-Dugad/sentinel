@@ -357,7 +357,7 @@ public sealed class DiagnosticsEngine(
 
         var lastBoot = boots.LastOrDefault() ?? events.Last();
         var before = events.Where(e => e.Timestamp <= lastBoot.Timestamp.AddMinutes(5) && e.Timestamp >= lastBoot.Timestamp.AddHours(-24)).ToList();
-        var findings = new List<Finding> { new(EvidenceKind.Observed, $"Windows started at {lastBoot.Timestamp:g}.", "Kernel-General 12") };
+        var findings = new List<Finding> { new(EvidenceKind.Observed, $"Windows started at {UnitFormatter.Absolute(lastBoot.Timestamp)}.", "Kernel-General 12") };
         var bug = before.LastOrDefault(e => e.Category == EventCategory.Bugcheck);
         var unexpected = before.LastOrDefault(e => e.Category == EventCategory.UnexpectedShutdown);
         var requested = before.LastOrDefault(e => e.Category == EventCategory.Shutdown && e.Title.Contains("requested", StringComparison.OrdinalIgnoreCase));
@@ -367,9 +367,9 @@ public sealed class DiagnosticsEngine(
         if (bug is not null)
         {
             var entry = bug.Code is null ? null : BugcheckCatalog.Lookup(bug.Code);
-            findings.Add(new(EvidenceKind.Observed, $"Windows recorded stop code {bug.Code}{(entry is null ? "" : $" ({entry.Name})")} at {bug.Timestamp:g}.", "WER system error report", Severity.Critical));
+            findings.Add(new(EvidenceKind.Observed, $"Windows recorded stop code {bug.Code}{(entry is null ? "" : $" ({entry.Name})")} at {UnitFormatter.Absolute(bug.Timestamp)}.", "WER system error report", Severity.Critical));
             if (entry is not null) findings.Add(new(EvidenceKind.Inferred, $"Category: {entry.Category}. {entry.Explanation}", "Microsoft bug check reference"));
-            findings.Add(new(EvidenceKind.Unknown, "Identifying the exact faulting driver requires analysing the memory dump, which Sentinel does not upload or parse."));
+            findings.Add(new(EvidenceKind.Unknown, "Identifying the exact faulting driver requires analyzing the memory dump, which Sentinel does not upload or parse."));
             summary = $"The restart was caused by a stop error ({entry?.Name ?? bug.Code}).";
             confidence = Confidence.High;
         }
@@ -382,7 +382,7 @@ public sealed class DiagnosticsEngine(
         }
         else if (requested is not null)
         {
-            findings.Add(new(EvidenceKind.Observed, $"{requested.Title} at {requested.Timestamp:g}." + (requested.Detail is null ? "" : $" Reason: {requested.Detail}."), "User32 1074"));
+            findings.Add(new(EvidenceKind.Observed, $"{requested.Title} at {UnitFormatter.Absolute(requested.Timestamp)}." + (requested.Detail is null ? "" : $" Reason: {requested.Detail}."), "User32 1074"));
             if (update is not null) findings.Add(new(EvidenceKind.Inferred, $"An update finished installing shortly before: {update.Title}.", "Windows Update"));
             summary = $"The restart was requested by {requested.Subject ?? "a process"}" + (update is not null ? ", following an update." : ".");
             confidence = Confidence.High;
@@ -468,7 +468,7 @@ public sealed class DiagnosticsEngine(
             return new DiagnosticResult(q.Text, q.Intent, q.Range, "No driver changes", $"No {(q.Subject is null ? "" : q.Subject.ToUpperInvariant() + " ")}driver changes were recorded {q.Range.Label}.", Confidence.Moderate,
                 [new(EvidenceKind.Observed, "Neither the Kernel-PnP log nor Sentinel's driver snapshots show a change in this period.", "Windows event logs, driver inventory")], [], []);
         var change = changes[0];
-        var findings = new List<Finding> { new(EvidenceKind.Observed, $"{change.Title} on {change.Timestamp:g}.", change.Source) };
+        var findings = new List<Finding> { new(EvidenceKind.Observed, $"{change.Title} on {UnitFormatter.Absolute(change.Timestamp)}.", change.Source) };
         var afterRange = new TimeRange(change.Timestamp, DateTimeOffset.Now, "since the change");
         var beforeRange = new TimeRange(change.Timestamp.AddDays(-30), change.Timestamp, "30 days before");
         var cats = new[] { EventCategory.DisplayDriverReset, EventCategory.Bugcheck, EventCategory.AppCrash, EventCategory.UnexpectedShutdown };
@@ -540,11 +540,11 @@ public sealed class DiagnosticsEngine(
         var findings = new List<Finding>();
         foreach (var s in sleeps.Take(5))
             findings.Add(new(EvidenceKind.Observed, s.PercentDelta is { } d
-                ? $"Slept {s.Start:g} for {UnitFormatter.Duration(s.Duration)}: lost {-d:F0}% ({-d / Math.Max(s.Duration.TotalHours, 0.01):F1}%/h)."
-                : $"Slept {s.Start:g} for {UnitFormatter.Duration(s.Duration)}.", "Sentinel sleep tracking"));
+                ? $"Slept {UnitFormatter.Absolute(s.Start)} for {UnitFormatter.Duration(s.Duration)}: lost {-d:F0}% ({-d / Math.Max(s.Duration.TotalHours, 0.01):F1}%/h)."
+                : $"Slept {UnitFormatter.Absolute(s.Start)} for {UnitFormatter.Duration(s.Duration)}.", "Sentinel sleep tracking"));
         foreach (var w in wakes.Where(w => w.Category == EventCategory.Wake && w.Detail is not null).Take(5))
-            findings.Add(new(EvidenceKind.Observed, $"{w.Timestamp:g}: {w.Title}. {w.Detail}", "Power-Troubleshooter log"));
-        if (findings.Count == 0) return DiagnosticResult.NotEnoughEvidence(q.Text, q.Intent, q.Range, "sleep behaviour");
+            findings.Add(new(EvidenceKind.Observed, $"{UnitFormatter.Absolute(w.Timestamp)}: {w.Title}. {w.Detail}", "Power-Troubleshooter log"));
+        if (findings.Count == 0) return DiagnosticResult.NotEnoughEvidence(q.Text, q.Intent, q.Range, "sleep behavior");
         findings.Add(new(EvidenceKind.Unknown, "Which apps prevent sleep is only visible to administrators (powercfg /requests) and is not collected."));
         return new DiagnosticResult(q.Text, q.Intent, q.Range, "Sleep", $"{sleeps.Count} sleep session(s) and {wakes.Count(w => w.Category == EventCategory.Wake)} wake event(s) {q.Range.Label}.", Confidence.Moderate, findings, [], []);
     }
@@ -554,7 +554,7 @@ public sealed class DiagnosticsEngine(
         var groups = timeline.WhatChanged(q.Range);
         if (groups.Count == 0) return new DiagnosticResult(q.Text, q.Intent, q.Range, "No changes", $"No system changes were recorded {q.Range.Label}.", Confidence.Moderate, [], [], []);
         var findings = groups.SelectMany(g => g.Items.Take(5).Select(i => new Finding(EvidenceKind.Observed,
-            $"{i.Timestamp:g} — {i.Title}" + (i.Before is not null || i.After is not null ? $" ({i.Before ?? "—"} → {i.After ?? "—"})" : ""), i.Source))).ToList();
+            $"{UnitFormatter.Absolute(i.Timestamp)} — {i.Title}" + (i.Before is not null || i.After is not null ? $" ({i.Before ?? "—"} → {i.After ?? "—"})" : ""), i.Source))).ToList();
         return new DiagnosticResult(q.Text, q.Intent, q.Range, "What changed", string.Join(", ", groups.Select(g => $"{g.Items.Count} {g.Kind.ToLowerInvariant()} change(s)")) + ".",
             Confidence.High, findings, [], []);
     }

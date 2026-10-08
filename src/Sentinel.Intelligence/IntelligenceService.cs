@@ -156,6 +156,7 @@ public sealed class IntelligenceService : IAsyncDisposable
             }, ct).ConfigureAwait(false);
             Recompute(now);
         }
+        await RepairGpuPowerAsync(ct).ConfigureAwait(false);
         if (now - _lastChanges >= TimeSpan.FromMinutes(10))
         {
             _lastChanges = now;
@@ -175,6 +176,24 @@ public sealed class IntelligenceService : IAsyncDisposable
         {
             _lastRetention = now;
             await _store.ApplyRetentionAsync(now, _settings.Current.RetentionDays, ct).ConfigureAwait(false);
+        }
+    }
+
+    private readonly HashSet<string> _gpuPowerRepaired = [];
+
+    /// <summary>
+    /// Once per adapter and session, removes stored power samples above the adapter's physical ceiling — values a
+    /// driver returned while the GPU was changing power state (for example 590 W on a 140 W laptop GPU).
+    /// </summary>
+    private async Task RepairGpuPowerAsync(CancellationToken ct)
+    {
+        foreach (var a in _providers.Gpu.Adapters)
+        {
+            if (_gpuPowerRepaired.Contains(a.Id)) continue;
+            if (_providers.Gpu.PowerCeilingW(a.Id) is not { } ceiling) continue;
+            _gpuPowerRepaired.Add(a.Id);
+            var removed = await _store.DeleteSamplesAboveAsync(Domain.MetricKeys.Gpu(a.Id, "power"), ceiling, ct).ConfigureAwait(false);
+            _log.LogInformation("GPU {Adapter} power history checked against a {Ceiling:F0} W ceiling; {Count} implausible samples removed", a.Id, ceiling, removed);
         }
     }
 

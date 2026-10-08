@@ -26,6 +26,21 @@ public static class ThemeColors
 
     public static SolidColorBrush Brush(FrameworkElement element, string key) => new(Get(element, key));
 
+    /// <summary>The theme dictionary's own brush (keeping its opacity) for the element's actual theme.</summary>
+    public static Brush ThemeBrush(FrameworkElement element, string key)
+    {
+        var themeKey = Accessibility.HighContrast ? "HighContrast" : element.ActualTheme == ElementTheme.Dark ? "Dark" : "Light";
+        foreach (var dict in Application.Current.Resources.MergedDictionaries)
+        {
+            if (dict.ThemeDictionaries.TryGetValue(themeKey, out var t) && t is ResourceDictionary rd && rd.TryGetValue(key, out var v))
+            {
+                if (v is Brush b) return b;
+                if (v is Color c) return new SolidColorBrush(c);
+            }
+        }
+        return Application.Current.Resources.TryGetValue(key, out var fallback) && fallback is Brush fb ? fb : new SolidColorBrush(Get(element, key));
+    }
+
     public static SolidColorBrush Series(FrameworkElement element, int index) => Brush(element, $"ChartSeries{Math.Clamp(index, 1, 6)}Color");
 
     public static SolidColorBrush Status(FrameworkElement element, Domain.HealthStatus status) => Brush(element, status switch

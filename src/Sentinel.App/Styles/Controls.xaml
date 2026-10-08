@@ -5,7 +5,7 @@
     <!-- Rows in data tables: generous height, no heavy selection chrome. -->
     <Style x:Key="TableListViewItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
         <Setter Property="Padding" Value="12,0" />
-        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="MinHeight" Value="44" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
 
@@ -13,6 +13,7 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style x:Key="PillBorderStyle" TargetType="Border">
@@ -29,12 +30,13 @@
         <Setter Property="Padding" Value="8,4" />
     </Style>
 
+    <!-- A whole card that is one button (Home tiles): lifts 2 px and takes an accent stroke on hover. -->
     <Style x:Key="TileButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{ThemeResource SurfaceElevatedBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource RadiusLarge}" />
-        <Setter Property="Padding" Value="18,16" />
+        <Setter Property="Padding" Value="16,14,16,14" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -48,6 +50,9 @@
                         <Grid.BackgroundTransition>
                             <BrushTransition Duration="0:0:0.15" />
                         </Grid.BackgroundTransition>
+                        <Grid.TranslationTransition>
+                            <Vector3Transition Duration="0:0:0.18" />
+                        </Grid.TranslationTransition>
                         <ContentPresenter x:Name="Content" Padding="{TemplateBinding Padding}" Content="{TemplateBinding Content}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
                                           HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -57,13 +62,15 @@
                                 <VisualState x:Name="Normal" />
                                 <VisualState x:Name="PointerOver">
                                     <VisualState.Setters>
-                                        <Setter Target="Root.Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
-                                        <Setter Target="Root.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                                        <Setter Target="Root.Background" Value="{ThemeResource SurfaceHoverBrush}" />
+                                        <Setter Target="Root.BorderBrush" Value="{ThemeResource BorderHoverBrush}" />
+                                        <Setter Target="Root.Translation" Value="0,-2,0" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Pressed">
                                     <VisualState.Setters>
                                         <Setter Target="Root.Background" Value="{ThemeResource ControlFillColorTertiaryBrush}" />
+                                        <Setter Target="Root.BorderBrush" Value="{ThemeResource BorderHoverBrush}" />
                                     </VisualState.Setters>
                                 </VisualState>
                                 <VisualState x:Name="Disabled">
@@ -77,5 +84,103 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- Filter chips: quiet outline when off, accent tint when on. Used for category filters. -->
+    <Style x:Key="ChipToggleButtonStyle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource BorderSubtleBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPill}" />
+        <Setter Property="Padding" Value="14,5,14,6" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid x:Name="Root" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid.BackgroundTransition>
+                            <BrushTransition Duration="0:0:0.15" />
+                        </Grid.BackgroundTransition>
+                        <StackPanel Orientation="Horizontal" Spacing="6" Padding="{TemplateBinding Padding}" VerticalAlignment="Center">
+                            <FontIcon x:Name="Check" Glyph="&#xE73E;" FontSize="11" Visibility="Collapsed" Foreground="{ThemeResource AccentGlyphBrush}" />
+                            <ContentPresenter x:Name="Content" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource SubtleFillColorTertiaryBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Checked">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource AccentSubtleBrush}" />
+                                        <Setter Target="Root.BorderBrush" Value="{ThemeResource BorderHoverBrush}" />
+                                        <Setter Target="Content.Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+                                        <Setter Target="Check.Visibility" Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource AccentSubtleBrush}" />
+                                        <Setter Target="Root.BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                        <Setter Target="Content.Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+                                        <Setter Target="Check.Visibility" Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedPressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Background" Value="{ThemeResource AccentSubtleBrush}" />
+                                        <Setter Target="Content.Foreground" Value="{ThemeResource TextPrimaryBrush}" />
+                                        <Setter Target="Check.Visibility" Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.5" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="CheckedDisabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Root.Opacity" Value="0.5" />
+                                        <Setter Target="Check.Visibility" Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Indeterminate" />
+                                <VisualState x:Name="IndeterminatePointerOver" />
+                                <VisualState x:Name="IndeterminatePressed" />
+                                <VisualState x:Name="IndeterminateDisabled" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Sortable table column header: quiet text, no link colour. -->
+    <Style x:Key="ColumnHeaderButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0,4" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- Suggestion chips (Ask Sentinel): a soft pill button with a leading icon. -->
+    <Style x:Key="SuggestionButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPill}" />
+        <Setter Property="Padding" Value="14,7,16,8" />
     </Style>
 </ResourceDictionary>

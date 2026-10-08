@@ -3,6 +3,7 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Sentinel.App.Services;
+using Sentinel.Core.Units;
 using Sentinel.Data;
 using Sentinel.Domain;
 
@@ -69,7 +70,7 @@ public sealed partial class DevicesViewModel : PageViewModel
         var rows = P.Devices.Devices.Select(d => new DeviceRow(d.Name, d.Category, d.Connected ? "Connected" : "Not connected",
             d.BatteryPercent is { } b ? $"Battery {b}%" : "", Glyph(d.Category), d.Connected
                 ? d.LastConnected is { } lc ? $"Connected {lc:t}" : "Connected before Sentinel started"
-                : d.LastDisconnected is { } ld ? $"Disconnected {ld:g}" : "Paired / previously seen", d.Connected)).ToList();
+                : d.LastDisconnected is { } ld ? "Disconnected " + UnitFormatter.When(ld) : "Paired / previously seen", d.Connected)).ToList();
         if (!Devices.SequenceEqual(rows))
         {
             Devices.Clear();
@@ -116,7 +117,7 @@ public sealed partial class DevicesViewModel : PageViewModel
                 new("Scale", $"{d.ScalePercent:F0}%", "GetDpiForMonitor"),
                 new("Orientation", d.Rotation == 0 ? "Landscape" : $"Rotated {d.Rotation}°", "QueryDisplayConfig"),
                 new("HDR", d.HdrSupported switch { true => d.HdrEnabled == true ? "Supported, on" : "Supported, off", false => "Not supported", _ => null }, "Advanced color info"),
-                new("Colour depth", d.BitsPerColor is { } b ? $"{b} bits per channel" : null, "Advanced color info"),
+                new("Color depth", d.BitsPerColor is { } b ? $"{b} bits per channel" : null, "Advanced color info"),
                 new("Graphics adapter", d.GpuName, "DXGI"),
                 new("Manufacturer code", d.ManufacturerCode, "EDID"),
                 new("Variable refresh rate", null, "Not exposed through a documented read API"),
@@ -160,7 +161,7 @@ public sealed partial class DevicesViewModel : PageViewModel
             new("Architecture", i.SystemArchitecture, "Runtime"),
             new("Windows", $"{i.OsName} {i.OsVersion}", "Registry / WMI"),
             new("Build", $"{i.OsBuild} ({i.OsArchitecture})", "Registry"),
-            new("Last startup", i.BootTime.ToString("g", CultureInfo.CurrentCulture), "Operating system"),
+            new("Last startup", UnitFormatter.When(i.BootTime), "Operating system"),
             new("Uptime", Core.Units.UnitFormatter.Duration(DateTimeOffset.Now - i.BootTime), "Operating system"),
             new("Computer name", i.ComputerName, "WMI", Sensitive: true),
             new("Serial number", i.SerialNumber, "SMBIOS", Sensitive: true),
@@ -173,7 +174,7 @@ public sealed partial class DevicesViewModel : PageViewModel
             new("Virtualization-based security", s.VbsRunning switch { true => "Running", false => "Not running", _ => null }, "Device Guard WMI"),
             new("Memory integrity (HVCI)", s.HvciRunning switch { true => "On", false => "Off", _ => null }, "Device Guard WMI"),
             new("Microsoft Defender real-time protection", s.DefenderRealtime switch { true => "On", false => "Off", _ => null }, "Defender WMI (status only)"),
-            new("Defender definitions updated", s.DefenderSignatureUpdated?.ToString("g", CultureInfo.CurrentCulture), "Defender WMI"),
+            new("Defender definitions updated", s.DefenderSignatureUpdated is { } du ? UnitFormatter.When(du) : null, "Defender WMI"),
             new("Virtualization in firmware", i.VirtualizationFirmwareEnabled switch { true => "Enabled", false => "Disabled", _ => null }, "WMI"),
             new("Hypervisor present", i.HypervisorPresent switch { true => "Yes", false => "No", _ => null }, "WMI"),
         ];

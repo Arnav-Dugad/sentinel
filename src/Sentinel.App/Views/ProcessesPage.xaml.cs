@@ -16,6 +16,6 @@ public sealed partial class ProcessesPage : SentinelPage
 
     private void OnSort(object sender, RoutedEventArgs e)
     {
-        if (sender is HyperlinkButton { Tag: string key }) Vm.SortBy = key;
+        if (sender is Microsoft.UI.Xaml.Controls.Primitives.ButtonBase { Tag: string key }) Vm.SortBy = key;
     }
 }

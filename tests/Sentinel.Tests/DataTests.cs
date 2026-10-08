@@ -51,8 +51,25 @@ public class HistoryStoreTests
         await t.Store.WriteSamplesAsync([new SampleRow("cpu.util", now.AddDays(-5), 1, 1, 1, 1)], [new SampleRow("cpu.util", now.AddDays(-40), 1, 1, 1, 1)],
             TestContext.Current.CancellationToken);
         await t.Store.ApplyRetentionAsync(now, 90, TestContext.Current.CancellationToken);
-        Assert.Empty(t.Store.QuerySeries("cpu.util", now.AddDays(-6), now, SeriesTier.TenSeconds).Where(p => p.Timestamp < now.AddDays(-2)));
+        Assert.DoesNotContain(t.Store.QuerySeries("cpu.util", now.AddDays(-6), now, SeriesTier.TenSeconds), p => p.Timestamp < now.AddDays(-2));
         Assert.Empty(t.Store.QuerySeries("cpu.util", now.AddDays(-41), now.AddDays(-39), SeriesTier.Minute));
+    }
+
+    [Fact]
+    public async Task ImplausibleSamplesCanBeRemoved()
+    {
+        using var t = new TempStore();
+        var rows = new List<SampleRow>
+        {
+            new("gpu.x.power", T0, 40, 30, 55, 60),
+            new("gpu.x.power", T0.AddMinutes(1), 400, 300, 590, 60),
+        };
+        await t.Store.WriteSamplesAsync([], rows, TestContext.Current.CancellationToken);
+        var removed = await t.Store.DeleteSamplesAboveAsync("gpu.x.power", 175, TestContext.Current.CancellationToken);
+        Assert.Equal(1, removed);
+        var left = Assert.Single(t.Store.QuerySeries("gpu.x.power", T0.AddMinutes(-1), T0.AddMinutes(5), SeriesTier.Minute));
+        Assert.Equal(40, left.Avg);
+        Assert.Equal(0, await t.Store.DeleteSamplesAboveAsync("does.not.exist", 1, TestContext.Current.CancellationToken));
     }
 
     [Fact]

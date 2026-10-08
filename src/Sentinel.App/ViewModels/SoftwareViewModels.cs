@@ -71,8 +71,11 @@ public sealed partial class ProcessesViewModel : PageViewModel
     private bool _reconciling;
     private string? _describedKey;
 
+    public bool HasSelection => Selected is not null;
+
     partial void OnSelectedChanged(ProcessRow? value)
     {
+        OnPropertyChanged(nameof(HasSelection));
         // Reordering makes the ListView briefly drop its selection; that transient null must not clear the details.
         if (_reconciling) return;
         Describe(value);
@@ -86,9 +89,9 @@ public sealed partial class ProcessesViewModel : PageViewModel
         Privacy = _settings.Current.PrivacyMode;
         IEnumerable<ProcessData> rows = GroupByApp
             ? snap.Apps.Select(a => new ProcessData("app:" + a.AppKey, 0, a.DisplayName, $"{a.ProcessCount} process{(a.ProcessCount == 1 ? "" : "es")}" + (a.Publisher is null ? "" : " · " + a.Publisher),
-                UnitFormatter.Percent(a.CpuPercent, 1), U.Bytes(a.PrivateBytes), U.Throughput(a.DiskBytesPerSec), UnitFormatter.Percent(a.GpuPercent), a.CpuPercent, a.PrivateBytes, a.DiskBytesPerSec, a.GpuPercent))
+                UnitFormatter.Percent(a.CpuPercent, 1), U.Bytes(a.PrivateBytes), U.DiskRate(a.DiskBytesPerSec), UnitFormatter.Percent(a.GpuPercent), a.CpuPercent, a.PrivateBytes, a.DiskBytesPerSec, a.GpuPercent))
             : snap.Processes.Select(p => new ProcessData($"pid:{p.Pid}:{p.Name}", p.Pid, p.Name, $"PID {p.Pid} · {p.Threads} threads · {p.Handles:N0} handles",
-                UnitFormatter.Percent(p.CpuPercent, 1), U.Bytes(p.PrivateBytes), U.Throughput(p.DiskBytesPerSec), UnitFormatter.Percent(p.GpuPercent), p.CpuPercent, p.PrivateBytes, p.DiskBytesPerSec, p.GpuPercent));
+                UnitFormatter.Percent(p.CpuPercent, 1), U.Bytes(p.PrivateBytes), U.DiskRate(p.DiskBytesPerSec), UnitFormatter.Percent(p.GpuPercent), p.CpuPercent, p.PrivateBytes, p.DiskBytesPerSec, p.GpuPercent));
         if (!string.IsNullOrWhiteSpace(Search))
             rows = rows.Where(r => r.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || r.Detail.Contains(Search, StringComparison.OrdinalIgnoreCase));
         rows = SortBy switch
@@ -171,7 +174,7 @@ public sealed partial class ProcessesViewModel : PageViewModel
             new("Location", d.ImagePath, "QueryFullProcessImageName", Sensitive: d.ImagePath?.Contains(@"\Users\", StringComparison.OrdinalIgnoreCase) == true),
             new("Architecture", d.Architecture, "IsWow64Process2"),
             new("Integrity level", d.IntegrityLevel, "Process token (query only)"),
-            new("Started", d.StartTime?.ToString("g", CultureInfo.CurrentCulture), "Process creation time"),
+            new("Started", d.StartTime is { } st0 ? UnitFormatter.When(st0) : null, "Process creation time"),
             new("Running for", d.StartTime is { } s ? UnitFormatter.Duration(DateTimeOffset.Now - s) : null, "Process creation time"),
             new("Parent", d.ParentName is null ? $"PID {d.ParentPid}" : $"{d.ParentName} (PID {d.ParentPid})", "Process snapshot"),
             new("Processes in this app", count.ToString(CultureInfo.CurrentCulture), "Process snapshot"),
@@ -182,7 +185,10 @@ public sealed partial class ProcessesViewModel : PageViewModel
 
 // ---------------------------------------------------------------- Startup
 
-public sealed record StartupRow(string Name, string Publisher, string Location, string Status, string Impact, string Evidence, string Target);
+public sealed record StartupRow(string Name, string Publisher, string Location, string Status, string Impact, string Evidence, string Target)
+{
+    public bool Enabled => Status == "Enabled";
+}
 
 public sealed partial class StartupViewModel : PageViewModel
 {
@@ -197,7 +203,7 @@ public sealed partial class StartupViewModel : PageViewModel
     {
         var items = P.Startup.Items.Select(i => new StartupRow(i.Name, i.Publisher ?? "Unknown publisher", i.Location, i.Enabled ? "Enabled" : "Disabled",
             i.Impact switch { StartupImpact.High => "High impact", StartupImpact.Moderate => "Moderate impact", StartupImpact.Low => "Low impact", _ => "Impact unknown" },
-            i.ImpactEvidence ?? "Windows has not recorded a startup delay for this app that Sentinel can read.", i.Target ?? "")).ToList();
+            i.ImpactEvidence ?? "", i.Target ?? "")).ToList();
         if (!Items.SequenceEqual(items))
         {
             Items.Clear();
@@ -210,7 +216,7 @@ public sealed partial class StartupViewModel : PageViewModel
             : "");
         var now = DateTimeOffset.Now;
         var changes = Services.GetRequiredService<HistoryStore>().QueryChanges(now.AddDays(-30), now).Where(c => c.Kind == "Startup")
-            .Select(c => new ChangeItemRow(c.Timestamp.ToString("MMM d, t", CultureInfo.CurrentCulture), c.Title, "", c.Source)).ToList();
+            .Select(c => new ChangeItemRow(UnitFormatter.When(c.Timestamp), c.Title, "", c.Source)).ToList();
         if (!Changes.SequenceEqual(changes))
         {
             Changes.Clear();
@@ -335,7 +341,7 @@ public sealed partial class UpdatesViewModel : PageViewModel
             6 => all.Where(u => u.Result.Contains("Failed", StringComparison.Ordinal)),
             _ => all,
         };
-        var rows = list.Take(200).Select(u => new UpdateRow(u.Date.ToString("g", CultureInfo.CurrentCulture),
+        var rows = list.Take(200).Select(u => new UpdateRow(UnitFormatter.When(u.Date),
             u.Kind == UpdateKind.StoreApp ? Platform.Windows.Events.EventMapping.StoreApp(u.Title) + " (Microsoft Store)" : u.Title,
             u.Kind switch { UpdateKind.Cumulative => "Cumulative", UpdateKind.Feature => "Feature", UpdateKind.Driver => "Driver", UpdateKind.Definition => "Definitions", UpdateKind.DotNet => ".NET", UpdateKind.StoreApp => "Store app", _ => "Other" },
             u.Result, u.Result.Contains("Failed", StringComparison.Ordinal))).ToList();
@@ -365,6 +371,11 @@ public sealed partial class UpdatesViewModel : PageViewModel
             var before = store.QueryEvents(latest.Date.AddDays(-days), latest.Date, cats, 1000).Count;
             Correlation = $"After the latest Windows update ({latest.Date:MMM d}): {after} crash/stability event(s) in {days:F0} day(s), versus {before} in the {days:F0} day(s) before. " +
                           (after > before * 2 && after >= 3 ? "Stability changed after the update; this is a correlation, not proof." : "No meaningful change in stability.");
+        }
+        else
+        {
+            Correlation = "No Windows cumulative or feature update appears in the update history Windows keeps, so there is nothing to compare yet. " +
+                          "When one installs, Sentinel compares crashes and restarts in the days before and after it.";
         }
     }
 }

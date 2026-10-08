@@ -7,40 +7,38 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="12">
-                <TextBlock Text="Devices" Style="{StaticResource PageTitleTextStyle}" />
-                <SelectorBar x:Name="Sections" SelectionChanged="OnSectionChanged">
-                    <SelectorBarItem Text="Devices" IsSelected="True" />
-                    <SelectorBarItem Text="Displays" />
-                    <SelectorBarItem Text="Audio" />
-                    <SelectorBarItem Text="This PC" />
-                </SelectorBar>
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Devices" />
+            <SelectorBar Margin="-12,-8,0,0" x:Name="Sections" SelectionChanged="OnSectionChanged">
+                <SelectorBarItem Text="Devices" IsSelected="True" />
+                <SelectorBarItem Text="Displays" />
+                <SelectorBarItem Text="Audio" />
+                <SelectorBarItem Text="This PC" />
+            </SelectorBar>
 
             <!-- Devices -->
             <StackPanel x:Name="DevicesPanel" Spacing="16">
-                <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.Problems), Mode=OneWay}" IsClosable="False" Severity="Warning" Message="{x:Bind Vm.Problems, Mode=OneWay}" />
+                <InfoBar IsOpen="{x:Bind local:Bool.Has(Vm.Problems), Mode=OneWay}" Visibility="{x:Bind local:Bool.HasText(Vm.Problems), Mode=OneWay}" IsClosable="False" Severity="Warning" Message="{x:Bind Vm.Problems, Mode=OneWay}" />
                 <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="External devices" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="External devices" Glyph="&#xE772;" Margin="0,0,0,4" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.Devices}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:DeviceRow">
-                                        <Grid ColumnSpacing="12" Padding="0,7" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                                        <Grid ColumnSpacing="12" Padding="0,9" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource DividerBrush}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="18" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                            <StackPanel Grid.Column="1">
+                                            <Border Width="34" Height="34" CornerRadius="17" Background="{ThemeResource SurfaceSunkenBrush}" VerticalAlignment="Center"><FontIcon Glyph="{x:Bind Glyph}" FontSize="15" Foreground="{ThemeResource TextSecondaryBrush}" /></Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
                                                 <TextBlock Text="{x:Bind Name}" TextTrimming="CharacterEllipsis" />
                                                 <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind Category}" /> · <Run Text="{x:Bind Seen}" /></TextBlock>
                                             </StackPanel>
-                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                            <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="2">
                                                 <TextBlock Text="{x:Bind Status}" HorizontalAlignment="Right" Style="{StaticResource LabelTextStyle}" FontWeight="SemiBold" />
                                                 <TextBlock Text="{x:Bind Battery}" HorizontalAlignment="Right" Style="{StaticResource LabelTextStyle}" />
                                             </StackPanel>
@@ -52,19 +50,19 @@
                     </Border>
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Device timeline (7 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Device timeline (7 days)" Glyph="&#xE81C;" Margin="0,0,0,4" />
                             <TextBlock Text="Connections and disconnections appear here as they happen." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Timeline.Count), Mode=OneWay}" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.Timeline}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:EventRow">
-                                        <Grid ColumnSpacing="12" Padding="0,5">
+                                        <Grid ColumnSpacing="16" Padding="0,8" ToolTipService.ToolTip="{x:Bind FullTime}">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="110" />
+                                                <ColumnDefinition Width="132" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
-                                            <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                            <StackPanel Grid.Column="1" Spacing="2">
                                                 <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
                                                 <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" TextWrapping="Wrap" />
                                             </StackPanel>
@@ -81,7 +79,7 @@
             <StackPanel x:Name="DisplaysPanel" Spacing="16" Visibility="Collapsed">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="Arrangement" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Arrangement" Glyph="&#xE772;" Margin="0,0,0,4" />
                         <Canvas x:Name="Topology" Height="220" AutomationProperties.Name="Display arrangement" />
                         <TextBlock Text="Arranged as Windows positions them. Sentinel never changes display settings." Style="{StaticResource LabelTextStyle}" />
                     </StackPanel>
@@ -92,9 +90,8 @@
                         <DataTemplate x:DataType="vm:DisplayCard">
                             <Border Style="{StaticResource CardStyle}">
                                 <StackPanel Spacing="8">
-                                    <TextBlock Text="{x:Bind Title}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
-                                    <TextBlock Text="{x:Bind Subtitle}" Style="{StaticResource LabelTextStyle}" />
-                                    <c:InfoList Items="{x:Bind Details}" Margin="0,8,0,0" />
+                                    <c:CardHeader Title="{x:Bind Title}" Subtitle="{x:Bind Subtitle}" Glyph="&#xE772;" />
+                                    <c:InfoList Items="{x:Bind Details}" Margin="0,12,0,0" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
@@ -107,7 +104,7 @@
                 <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Audio devices" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Audio devices" Glyph="&#xE772;" Margin="0,0,0,4" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.AudioDevices}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
@@ -126,7 +123,7 @@
                     </Border>
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel Spacing="10">
-                            <TextBlock Text="Apps playing sound" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Apps playing sound" Glyph="&#xE9F5;" Margin="0,0,0,2" />
                             <TextBlock Text="No app is producing sound right now." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Sessions.Count), Mode=OneWay}" />
                             <ItemsRepeater ItemsSource="{x:Bind Vm.Sessions}">
                                 <ItemsRepeater.Layout><StackLayout Spacing="10" /></ItemsRepeater.Layout>
@@ -147,28 +144,29 @@
 
             <!-- This PC -->
             <StackPanel x:Name="ComputerPanel" Spacing="16" Visibility="Collapsed">
-                <Grid>
-                    <TextBlock Text="This PC" Style="{StaticResource SectionTitleTextStyle}" VerticalAlignment="Center" />
-                    <ToggleSwitch HorizontalAlignment="Right" IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing identifiers" OffContent="Show sensitive identifiers" MinWidth="0" />
-                </Grid>
+                <c:CardHeader Title="This PC" Glyph="&#xE772;">
+                    <c:CardHeader.Actions>
+                        <ToggleSwitch IsOn="{x:Bind Vm.Sensitive.ShowSensitive, Mode=TwoWay}" OnContent="Showing identifiers" OffContent="Show sensitive identifiers" MinWidth="0" />
+                    </c:CardHeader.Actions>
+                </c:CardHeader>
                 <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                     <Border Style="{StaticResource CardStyle}">
                         <StackPanel>
-                            <TextBlock Text="Computer" Style="{StaticResource SectionTitleTextStyle}" />
+                            <c:CardHeader Title="Computer" Glyph="&#xE772;" Margin="0,0,0,12" />
                             <c:InfoList Items="{x:Bind Vm.Computer, Mode=OneWay}" />
                         </StackPanel>
                     </Border>
                     <StackPanel Spacing="16">
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel>
-                                <TextBlock Text="Security status" Style="{StaticResource SectionTitleTextStyle}" />
+                                <c:CardHeader Title="Security status" Glyph="&#xE72E;" Margin="0,0,0,12" />
                                 <c:InfoList Items="{x:Bind Vm.Security, Mode=OneWay}" />
                                 <TextBlock Style="{StaticResource LabelTextStyle}" Margin="0,10,0,0" Text="Read-only. Sentinel never turns off or weakens any Windows security feature." />
                             </StackPanel>
                         </Border>
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="Manufacturer" Style="{StaticResource SectionTitleTextStyle}" />
+                                <c:CardHeader Title="Manufacturer" Glyph="&#xE772;" Margin="0,0,0,4" />
                                 <c:InfoList Items="{x:Bind Vm.Oem, Mode=OneWay}" />
                                 <TextBlock Text="{x:Bind Vm.OemStatement, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
                             </StackPanel>

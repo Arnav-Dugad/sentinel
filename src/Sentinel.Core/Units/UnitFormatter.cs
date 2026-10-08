@@ -66,6 +66,56 @@ public sealed class UnitFormatter(ISettingsStore settings)
         return Bytes(b) + "/s";
     }
 
+    /// <summary>Rate for a metric key: disk metrics in bytes per second, network metrics per the user's setting.</summary>
+    public string Rate(string metricKey, double? bytesPerSec) =>
+        metricKey.StartsWith("disk.", StringComparison.Ordinal) ? DiskRate(bytesPerSec) : Throughput(bytesPerSec);
+
+    /// <summary>Disk and file I/O rate. Always bytes per second; the bits setting applies to network speeds only.</summary>
+    public string DiskRate(double? bytesPerSec) => bytesPerSec is not { } b || double.IsNaN(b) ? "—" : Bytes(b) + "/s";
+
+    /// <summary>
+    /// A compact, unambiguous timestamp for lists: "9:52 PM" today, "Yesterday 9:52 PM", "Mon 9:52 PM" this week,
+    /// "7 Oct 9:52 PM" this year, otherwise a full short date. Uses the culture's own time pattern.
+    /// </summary>
+    public static string When(DateTimeOffset t, DateTimeOffset? now = null)
+    {
+        var local = t.ToLocalTime();
+        var today = (now ?? DateTimeOffset.Now).ToLocalTime().Date;
+        var time = local.ToString("t", Culture);
+        var day = local.Date;
+        if (day == today) return time;
+        if (day == today.AddDays(-1)) return "Yesterday " + time;
+        if (day > today.AddDays(-7) && day < today) return local.ToString("ddd", Culture) + " " + time;
+        if (day.Year == today.Year) return local.ToString(Culture.DateTimeFormat.MonthDayPattern.Contains('M', StringComparison.Ordinal) && Culture.DateTimeFormat.MonthDayPattern.StartsWith('d') ? "d MMM" : "MMM d", Culture) + " " + time;
+        return local.ToString("d", Culture) + " " + time;
+    }
+
+    /// <summary>A date for lists: "Today", "Yesterday", "Mon", "7 Oct" or a short date.</summary>
+    public static string Day(DateTimeOffset t, DateTimeOffset? now = null)
+    {
+        var day = t.ToLocalTime().Date;
+        var today = (now ?? DateTimeOffset.Now).ToLocalTime().Date;
+        if (day == today) return "Today";
+        if (day == today.AddDays(-1)) return "Yesterday";
+        if (day > today.AddDays(-7) && day < today) return day.ToString("dddd", Culture);
+        return day.ToString(day.Year == today.Year ? "MMMM d" : "D", Culture);
+    }
+
+    /// <summary>
+    /// An absolute, readable timestamp for sentences that may be stored or read later ("October 7, 11:01 PM";
+    /// the year is added when it is not the current year). Never relative, so it cannot go stale.
+    /// </summary>
+    public static string Absolute(DateTimeOffset t)
+    {
+        var local = t.ToLocalTime();
+        var date = local.ToString(Culture.DateTimeFormat.MonthDayPattern, Culture);
+        if (local.Year != DateTimeOffset.Now.Year) date += ", " + local.Year.ToString(Culture);
+        return date + ", " + local.ToString("t", Culture);
+    }
+
+    /// <summary>Full, explicit timestamp for tooltips and detail panes.</summary>
+    public static string Full(DateTimeOffset t) => t.ToLocalTime().ToString("f", Culture);
+
     public string LinkSpeed(long bitsPerSecond)
     {
         if (bitsPerSecond <= 0) return "—";

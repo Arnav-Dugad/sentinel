@@ -127,6 +127,13 @@ public class ProviderHelperTests
     }
 
     [Theory]
+    [InlineData(140_000u, "NVIDIA GeForce RTX 4060 Laptop GPU", 175)]
+    [InlineData(null, "NVIDIA GeForce RTX 4060 Laptop GPU", 200)]
+    [InlineData(null, "NVIDIA GeForce RTX 4090", 1000)]
+    [InlineData(450_000u, "NVIDIA GeForce RTX 4090", 562.5)]
+    public void GpuPowerCeiling(uint? limitMw, string name, double expected) => Assert.Equal(expected, GpuProvider.PowerCeiling(limitMw, name), 3);
+
+    [Theory]
     [InlineData("\"C:\\Program Files\\App\\app.exe\" --minimized", "C:\\Program Files\\App\\app.exe")]
     [InlineData("C:\\Tools\\tool.exe -silent", "C:\\Tools\\tool.exe")]
     [InlineData("", null)]

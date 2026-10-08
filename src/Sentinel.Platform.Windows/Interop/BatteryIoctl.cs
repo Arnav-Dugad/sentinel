@@ -153,6 +153,6 @@ internal static unsafe class BatteryIoctl
         "NIZN" => "Nickel zinc",
         "RAM" => "Rechargeable alkaline-manganese",
         "" => null,
-        _ => $"Unrecognised code \"{code}\"",
+        _ => $"Unrecognized code \"{code}\"",
     };
 }

@@ -96,6 +96,33 @@ public sealed partial class SentinelChart : Grid
 
     public void Redraw()
     {
+        DrawAll();
+        RevealOnce();
+    }
+
+    private bool _revealed;
+
+    /// <summary>The first time real data appears, the plot draws in from left to right (skipped when motion is reduced).</summary>
+    private void RevealOnce()
+    {
+        if (_revealed || !Series.Any(s => s.Points.Any(p => !double.IsNaN(p.V))) || _canvas.ActualWidth < 20) return;
+        _revealed = true;
+        if (!Motion.Enabled) return;
+        var visual = Microsoft.UI.Xaml.Hosting.ElementCompositionPreview.GetElementVisual(_canvas);
+        var compositor = visual.Compositor;
+        var width = (float)_canvas.ActualWidth;
+        var clip = compositor.CreateInsetClip(0, 0, width, 0);
+        visual.Clip = clip;
+        var ease = compositor.CreateCubicBezierEasingFunction(new System.Numerics.Vector2(0.1f, 0.9f), new System.Numerics.Vector2(0.2f, 1f));
+        var animation = compositor.CreateScalarKeyFrameAnimation();
+        animation.InsertKeyFrame(0f, width);
+        animation.InsertKeyFrame(1f, 0f, ease);
+        animation.Duration = TimeSpan.FromMilliseconds(700);
+        clip.StartAnimation("RightInset", animation);
+    }
+
+    private void DrawAll()
+    {
         _canvas.Children.Clear();
         UpdateLegend();
         var w = _overlay.ActualWidth;
@@ -324,6 +351,15 @@ public sealed partial class SentinelChart : Grid
         };
         if (s.Dashed) path.StrokeDashArray = [4, 3];
         _canvas.Children.Add(path);
+
+        // A reading isolated between gaps has no neighbour to join; show it as a dot rather than letting it vanish.
+        foreach (var figure in lineGeometry.Figures.Where(f => f.Segments.Count == 0))
+        {
+            var dot = new Ellipse { Width = 4, Height = 4, Fill = stroke };
+            Canvas.SetLeft(dot, figure.StartPoint.X - 2);
+            Canvas.SetTop(dot, figure.StartPoint.Y - 2);
+            _canvas.Children.Add(dot);
+        }
 
         void Close(PathFigure? f, Point l)
         {

@@ -10,25 +10,49 @@ using Sentinel.Domain;
 
 namespace Sentinel.App.Controls;
 
-/// <summary>A compact live metric: label, large value, caption and an optional status indicator.</summary>
+/// <summary>
+/// A live metric tile: accent icon badge and label, a large single-line value and a caption of up to two lines (full
+/// text in the tooltip). With <see cref="Chrome"/> it draws its own card surface and lifts on hover; without it, it
+/// sits flat inside a larger card. <see cref="Footer"/> hosts extras such as a progress bar.
+/// </summary>
 public sealed partial class MetricTile : UserControl
 {
-    private readonly TextBlock _label = new() { Style = (Style)Application.Current.Resources["LabelTextStyle"] };
-    private readonly TextBlock _value = new() { Style = (Style)Application.Current.Resources["MetricValueTextStyle"], Margin = new Thickness(0, 4, 0, 0) };
-    private readonly TextBlock _caption = new() { Style = (Style)Application.Current.Resources["LabelTextStyle"], Margin = new Thickness(0, 2, 0, 0), MaxLines = 2 };
-    private readonly FontIcon _icon = new() { FontSize = 16, Margin = new Thickness(0, 0, 8, 0) };
+    private readonly Border _surface = new();
+    private readonly Border _badge = new() { Width = 28, Height = 28, CornerRadius = new CornerRadius(6) };
+    private readonly FontIcon _icon = new() { FontSize = 14 };
+    private readonly TextBlock _label = new()
+    {
+        FontSize = 12, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center,
+        TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.CharacterEllipsis,
+    };
+    private readonly TextBlock _value = new() { Style = (Style)Application.Current.Resources["MetricValueTextStyle"], Margin = new Thickness(0, 14, 0, 0) };
+    private readonly TextBlock _caption = new()
+    {
+        Style = (Style)Application.Current.Resources["LabelTextStyle"], Margin = new Thickness(0, 4, 0, 0), MaxLines = 2,
+        TextTrimming = TextTrimming.CharacterEllipsis,
+    };
+    private readonly ContentPresenter _footer = new() { Margin = new Thickness(0, 12, 0, 0), Visibility = Visibility.Collapsed };
+    private bool _hoverWired;
 
     public MetricTile()
     {
-        var header = new StackPanel { Orientation = Orientation.Horizontal };
-        header.Children.Add(_icon);
+        _badge.Child = _icon;
+        var header = new Grid { ColumnSpacing = 10 };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(_label, 1);
+        header.Children.Add(_badge);
         header.Children.Add(_label);
         var stack = new StackPanel();
         stack.Children.Add(header);
         stack.Children.Add(_value);
         stack.Children.Add(_caption);
-        Content = stack;
-        _icon.Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"];
+        stack.Children.Add(_footer);
+        _surface.Child = stack;
+        Content = _surface;
+        Loaded += (_, _) => ApplyTheme();
+        ActualThemeChanged += (_, _) => ApplyTheme();
+        ApplyChrome();
     }
 
     public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(nameof(Label), typeof(string), typeof(MetricTile),
@@ -41,12 +65,50 @@ public sealed partial class MetricTile : UserControl
         new PropertyMetadata("", (d, e) => ((MetricTile)d).Update()));
     public static readonly DependencyProperty ProvenanceProperty = DependencyProperty.Register(nameof(Provenance), typeof(string), typeof(MetricTile),
         new PropertyMetadata(null, (d, e) => ((MetricTile)d).Update()));
+    public static readonly DependencyProperty ChromeProperty = DependencyProperty.Register(nameof(Chrome), typeof(bool), typeof(MetricTile),
+        new PropertyMetadata(true, (d, e) => ((MetricTile)d).ApplyChrome()));
+    public static readonly DependencyProperty FooterProperty = DependencyProperty.Register(nameof(Footer), typeof(object), typeof(MetricTile),
+        new PropertyMetadata(null, (d, e) =>
+        {
+            var t = (MetricTile)d;
+            t._footer.Content = e.NewValue;
+            t._footer.Visibility = e.NewValue is null ? Visibility.Collapsed : Visibility.Visible;
+        }));
 
     public string Label { get => (string)GetValue(LabelProperty); set => SetValue(LabelProperty, value); }
     public string Value { get => (string)GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
     public string Caption { get => (string)GetValue(CaptionProperty); set => SetValue(CaptionProperty, value); }
     public string Glyph { get => (string)GetValue(GlyphProperty); set => SetValue(GlyphProperty, value); }
     public string? Provenance { get => (string?)GetValue(ProvenanceProperty); set => SetValue(ProvenanceProperty, value); }
+    public bool Chrome { get => (bool)GetValue(ChromeProperty); set => SetValue(ChromeProperty, value); }
+    public object? Footer { get => GetValue(FooterProperty); set => SetValue(FooterProperty, value); }
+
+    private void ApplyChrome()
+    {
+        if (Chrome)
+        {
+            _surface.Style = (Style)Application.Current.Resources["CompactCardStyle"];
+            _surface.MinHeight = 120;
+            if (!_hoverWired)
+            {
+                _hoverWired = true;
+                Motion.AddHoverLift(_surface);
+            }
+        }
+        else
+        {
+            _surface.ClearValue(StyleProperty);
+            _surface.Padding = new Thickness(0);
+            _surface.MinHeight = 0;
+        }
+    }
+
+    private void ApplyTheme()
+    {
+        _badge.Background = ThemeColors.ThemeBrush(this, "AccentSubtleBrush");
+        _icon.Foreground = ThemeColors.ThemeBrush(this, "AccentGlyphBrush");
+        _label.Foreground = ThemeColors.ThemeBrush(this, "TextSecondaryBrush");
+    }
 
     private void Update()
     {
@@ -55,8 +117,10 @@ public sealed partial class MetricTile : UserControl
         _caption.Text = Caption ?? "";
         _caption.Visibility = string.IsNullOrEmpty(Caption) ? Visibility.Collapsed : Visibility.Visible;
         _icon.Glyph = Glyph ?? "";
-        _icon.Visibility = string.IsNullOrEmpty(Glyph) ? Visibility.Collapsed : Visibility.Visible;
-        ToolTipService.SetToolTip(this, string.IsNullOrEmpty(Provenance) ? null : Provenance);
+        _badge.Visibility = string.IsNullOrEmpty(Glyph) ? Visibility.Collapsed : Visibility.Visible;
+        var parts = new[] { string.IsNullOrEmpty(Caption) ? null : Caption, string.IsNullOrEmpty(Provenance) ? null : "Source: " + Provenance };
+        var tip = string.Join("\n", parts.Where(t => t is not null));
+        ToolTipService.SetToolTip(this, tip.Length == 0 ? null : tip);
         AutomationProperties.SetName(this, $"{Label}: {_value.Text}. {Caption}");
     }
 }
@@ -64,12 +128,13 @@ public sealed partial class MetricTile : UserControl
 /// <summary>Label/value rows. Sensitive values are masked unless the user chooses to reveal them; each row can carry its source.</summary>
 public sealed partial class InfoList : UserControl
 {
-    private readonly Grid _grid = new() { ColumnSpacing = 24, RowSpacing = 10 };
+    private readonly Grid _grid = new() { ColumnSpacing = 32, RowSpacing = 12 };
     private SensitiveInfoState? _sensitive;
 
     public InfoList()
     {
-        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.42, GridUnitType.Star), MaxWidth = 260 });
+        // The label column takes the width of the longest label (capped), so short labels never wrap and values align.
+        _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 120, MaxWidth = 280 });
         _grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         Content = _grid;
         Loaded += (_, _) =>
@@ -123,29 +188,55 @@ public sealed partial class InfoList : UserControl
     }
 }
 
-/// <summary>Calm explanation shown instead of an error when information is not available.</summary>
+/// <summary>Calm explanation shown instead of an error when information is not available: an accent badge, a title and a short message.</summary>
 public sealed partial class EmptyState : UserControl
 {
-    private readonly FontIcon _icon = new() { FontSize = 28, Glyph = "" };
-    private readonly TextBlock _title = new() { Style = (Style)Application.Current.Resources["SectionTitleTextStyle"], TextAlignment = TextAlignment.Center, Margin = new Thickness(0, 12, 0, 4) };
-    private readonly TextBlock _message = new() { Style = (Style)Application.Current.Resources["MutedTextStyle"], TextAlignment = TextAlignment.Center, MaxWidth = 520 };
+    private readonly Border _badge = new() { Width = 52, Height = 52, CornerRadius = new CornerRadius(26), HorizontalAlignment = HorizontalAlignment.Center };
+    private readonly FontIcon _icon = new() { FontSize = 22, Glyph = "\uE946" };
+    private readonly TextBlock _title = new()
+    {
+        FontSize = 15, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(0, 14, 0, 4), HorizontalAlignment = HorizontalAlignment.Center,
+    };
+    private readonly TextBlock _message = new()
+    {
+        Style = (Style)Application.Current.Resources["MutedTextStyle"], TextAlignment = TextAlignment.Center, MaxWidth = 460,
+        HorizontalAlignment = HorizontalAlignment.Center,
+    };
 
     public EmptyState()
     {
-        _icon.Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"];
-        var s = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, Padding = new Thickness(16, 28, 16, 28) };
-        s.Children.Add(_icon);
+        _badge.Child = _icon;
+        var s = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Padding = new Thickness(16, 24, 16, 24) };
+        s.Children.Add(_badge);
         s.Children.Add(_title);
         s.Children.Add(_message);
         Content = s;
+        Loaded += (_, _) => ApplyTheme();
+        ActualThemeChanged += (_, _) => ApplyTheme();
+    }
+
+    private void ApplyTheme()
+    {
+        _badge.Background = ThemeColors.ThemeBrush(this, "AccentSubtleBrush");
+        _icon.Foreground = ThemeColors.ThemeBrush(this, "AccentGlyphBrush");
+        _title.Foreground = ThemeColors.ThemeBrush(this, "TextPrimaryBrush");
     }
 
     public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(nameof(Title), typeof(string), typeof(EmptyState),
-        new PropertyMetadata("", (d, e) => ((EmptyState)d)._title.Text = (string)e.NewValue));
+        new PropertyMetadata("", (d, e) =>
+        {
+            var x = (EmptyState)d;
+            x._title.Text = (string?)e.NewValue ?? "";
+            x._title.Visibility = string.IsNullOrEmpty((string?)e.NewValue) ? Visibility.Collapsed : Visibility.Visible;
+        }));
     public static readonly DependencyProperty MessageProperty = DependencyProperty.Register(nameof(Message), typeof(string), typeof(EmptyState),
-        new PropertyMetadata("", (d, e) => ((EmptyState)d)._message.Text = (string)e.NewValue));
+        new PropertyMetadata("", (d, e) => ((EmptyState)d)._message.Text = (string)e.NewValue ?? ""));
     public static readonly DependencyProperty GlyphProperty = DependencyProperty.Register(nameof(Glyph), typeof(string), typeof(EmptyState),
-        new PropertyMetadata("", (d, e) => ((EmptyState)d)._icon.Glyph = (string)e.NewValue));
+        new PropertyMetadata("", (d, e) =>
+        {
+            if (!string.IsNullOrEmpty((string)e.NewValue)) ((EmptyState)d)._icon.Glyph = (string)e.NewValue;
+        }));
 
     public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
     public string Message { get => (string)GetValue(MessageProperty); set => SetValue(MessageProperty, value); }

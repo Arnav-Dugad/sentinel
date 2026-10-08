@@ -59,7 +59,10 @@
                 <Button x:Name="RecordingButton" Style="{StaticResource GhostButtonStyle}" Click="OnRecordingClicked" VerticalAlignment="Center"
                         AutomationProperties.Name="Recording status">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Ellipse x:Name="RecordingDot" Width="8" Height="8" Fill="{ThemeResource StatusHealthyBrush}" />
+                        <Grid Width="8" Height="8" VerticalAlignment="Center">
+                            <Ellipse x:Name="RecordingHalo" Width="8" Height="8" Fill="{ThemeResource StatusHealthyBrush}" Opacity="0" IsHitTestVisible="False" />
+                            <Ellipse x:Name="RecordingDot" Width="8" Height="8" Fill="{ThemeResource StatusHealthyBrush}" />
+                        </Grid>
                         <TextBlock x:Name="RecordingText" Text="Recording" FontSize="12" />
                     </StackPanel>
                 </Button>

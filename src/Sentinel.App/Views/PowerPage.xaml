@@ -7,24 +7,29 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Power" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Power state and what uses energy. Sentinel never changes power plans or modes." Style="{StaticResource PageSubtitleTextStyle}" />
-                <HyperlinkButton Content="Open Power &amp; battery settings" NavigateUri="ms-settings:powersleep" Padding="0" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Power" Subtitle="Power state and what uses energy. Sentinel never changes power plans or modes.">
+                <c:PageHeader.Footer>
+                    <HyperlinkButton Padding="0" Content="Open Power &amp; battery settings" NavigateUri="ms-settings:powersleep" />
+                </c:PageHeader.Footer>
+            </c:PageHeader>
 
             <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Right now" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Right now" Glyph="&#xE945;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.State, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Why is my battery draining?" Style="{StaticResource SectionTitleTextStyle}" />
-                        <Button Content="Analyse today" Command="{x:Bind Vm.WhyDrainCommand}" />
+                        <c:CardHeader Title="Why is my battery draining?" Glyph="&#xE83F;">
+                            <c:CardHeader.Actions>
+                                <Button Content="Analyze today" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind Vm.WhyDrainCommand}" />
+                            </c:CardHeader.Actions>
+                        </c:CardHeader>
+                        <TextBlock Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Not(Vm.Diagnosis.HasResult), Mode=OneWay}"
+                                   Text="Sentinel looks at today's time on battery: how fast the charge fell, which apps were busy, screen-on time and any sleep that did not hold. Every finding is labelled with how sure it is." />
                         <StackPanel Spacing="10" Visibility="{x:Bind local:Bool.Vis(Vm.Diagnosis.HasResult), Mode=OneWay}">
                             <TextBlock Text="{x:Bind Vm.Diagnosis.Title, Mode=OneWay}" Style="{StaticResource EyebrowTextStyle}" />
                             <TextBlock Text="{x:Bind Vm.Diagnosis.Summary, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
@@ -36,20 +41,22 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Power timeline (3 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Power timeline (3 days)" Glyph="&#xE81C;" Margin="0,0,0,4" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="vm:EventRow">
-                                <Grid ColumnSpacing="12" Padding="0,4">
+                                <Grid ColumnSpacing="14" Padding="0,7" ToolTipService.ToolTip="{x:Bind FullTime}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="132" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <TextBlock Grid.Column="1" Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" />
-                                    <StackPanel Grid.Column="2">
+                                    <Border Width="30" Height="30" CornerRadius="15" Background="{ThemeResource SurfaceSunkenBrush}" VerticalAlignment="Top">
+                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Time}" Style="{StaticResource MutedTextStyle}" Margin="0,5,0,0" TextWrapping="NoWrap" />
+                                    <StackPanel Grid.Column="2" Margin="0,5,0,0" Spacing="2">
                                         <TextBlock Text="{x:Bind Title}" />
                                         <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" TextWrapping="Wrap" />
                                     </StackPanel>

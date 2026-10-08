@@ -6,237 +6,267 @@
     xmlns:vm="using:Sentinel.App.ViewModels"
     xmlns:c="using:Sentinel.App.Controls">
 
+    <Page.Resources>
+        <DataTemplate x:Key="HomeTileTemplate" x:DataType="vm:HomeTile">
+            <Button Style="{StaticResource TileButtonStyle}" Click="OnTileClick" Tag="{x:Bind Target}"
+                    ToolTipService.ToolTip="{x:Bind Provenance, Mode=OneWay}" AutomationProperties.Name="{x:Bind Label}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="28" Height="28" CornerRadius="6" Background="{ThemeResource AccentSubtleBrush}">
+                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource AccentGlyphBrush}" />
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{x:Bind Label}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock Grid.Row="1" Text="{x:Bind Value, Mode=OneWay}" Style="{StaticResource MetricValueTextStyle}" Margin="0,14,0,0" />
+                    <TextBlock Grid.Row="2" Text="{x:Bind Caption, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" Margin="0,4,0,0"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <c:Sparkline Grid.Row="3" Points="{x:Bind Spark, Mode=OneWay}" ColorIndex="{x:Bind ColorIndex}" Max="{x:Bind SparkMaxOrNaN}"
+                                 Height="44" Margin="0,14,0,0" VerticalAlignment="Bottom" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+    </Page.Resources>
+
     <Grid>
         <VisualStateManager.VisualStateGroups>
-                <VisualStateGroup>
-                    <VisualState x:Name="Wide">
-                        <VisualState.StateTriggers>
-                            <AdaptiveTrigger MinWindowWidth="1100" />
-                        </VisualState.StateTriggers>
-                    </VisualState>
-                    <VisualState x:Name="Narrow">
-                        <VisualState.StateTriggers>
-                            <AdaptiveTrigger MinWindowWidth="0" />
-                        </VisualState.StateTriggers>
-                        <VisualState.Setters>
-                            <Setter Target="InsightColumn.Width" Value="0" />
-                            <Setter Target="InsightCard.(Grid.Column)" Value="0" />
-                            <Setter Target="InsightCard.(Grid.Row)" Value="1" />
-                            <Setter Target="SideColumn.Width" Value="0" />
-                            <Setter Target="HealthCard.(Grid.Column)" Value="0" />
-                            <Setter Target="HealthCard.(Grid.Row)" Value="2" />
-                            <Setter Target="InsightsCard.(Grid.Column)" Value="0" />
-                            <Setter Target="InsightsCard.(Grid.Row)" Value="3" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-    <ScrollViewer>
-        <Grid MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" RowSpacing="24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+            <VisualStateGroup>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1100" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="InsightColumn.Width" Value="0" />
+                        <Setter Target="InsightPanel.(Grid.Column)" Value="0" />
+                        <Setter Target="InsightPanel.(Grid.Row)" Value="1" />
+                        <Setter Target="SideColumn.Width" Value="0" />
+                        <Setter Target="HealthCard.(Grid.Column)" Value="0" />
+                        <Setter Target="HealthCard.(Grid.Row)" Value="2" />
+                        <Setter Target="InsightsCard.(Grid.Column)" Value="0" />
+                        <Setter Target="InsightsCard.(Grid.Row)" Value="3" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
 
-            <!-- Hero: how is my PC doing right now? -->
-            <Grid x:Name="Hero" ColumnSpacing="24" RowSpacing="16" Margin="0,16,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition x:Name="InsightColumn" Width="380" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <StackPanel Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="{x:Bind Vm.Greeting, Mode=OneWay}" Style="{StaticResource EyebrowTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Headline, Mode=OneWay}" Style="{StaticResource HeroTitleTextStyle}" />
-                    <TextBlock Text="{x:Bind Vm.Detail, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" MaxWidth="640" HorizontalAlignment="Left" />
-                    <c:StatusPill Status="{x:Bind Vm.Overall, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,4,0,0" />
-                </StackPanel>
-                <Border x:Name="InsightCard" Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="{ThemeResource HeroGradientStartColor}" Offset="0" />
-                            <GradientStop Color="{ThemeResource HeroGradientEndColor}" Offset="1" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <StackPanel Spacing="8">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE945;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="Sentinel insight" Style="{StaticResource EyebrowTextStyle}" />
+        <ScrollViewer>
+            <StackPanel Style="{StaticResource PageContentStyle}">
+
+                <!-- Hero: how is my PC doing right now, and the single most useful thing Sentinel knows. -->
+                <Grid Margin="0,28,0,0" CornerRadius="{StaticResource RadiusLarge}" BorderThickness="1" BorderBrush="{ThemeResource BorderSubtleBrush}"
+                      Background="{ThemeResource SurfaceElevatedBrush}">
+                    <Rectangle RadiusX="8" RadiusY="8">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="{ThemeResource HeroGradientStartColor}" Offset="0" />
+                                <GradientStop Color="{ThemeResource HeroGradientEndColor}" Offset="0.85" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Grid Padding="28,26,28,28" ColumnSpacing="32" RowSpacing="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition x:Name="InsightColumn" Width="400" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Spacing="10" VerticalAlignment="Center">
+                            <TextBlock Text="{x:Bind Vm.Greeting, Mode=OneWay}" Style="{StaticResource EyebrowTextStyle}" />
+                            <TextBlock Text="{x:Bind Vm.Headline, Mode=OneWay}" Style="{StaticResource HeroTitleTextStyle}" MaxWidth="620" HorizontalAlignment="Left" />
+                            <TextBlock Text="{x:Bind Vm.Detail, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" MaxWidth="620" HorizontalAlignment="Left" />
+                            <c:StatusPill Status="{x:Bind Vm.Overall, Mode=OneWay}" HorizontalAlignment="Left" Margin="0,6,0,0" />
                         </StackPanel>
-                        <TextBlock Text="{x:Bind Vm.InsightText, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
-                        <TextBlock Text="{x:Bind Vm.InsightConfidence, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Hardware overview -->
-            <ItemsRepeater Grid.Row="1" ItemsSource="{x:Bind Vm.Tiles}">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="200" MinItemHeight="150" MinRowSpacing="12" MinColumnSpacing="12" ItemsStretch="Fill" />
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="vm:HomeTile">
-                        <Button Style="{StaticResource TileButtonStyle}" Click="OnTileClick" Tag="{x:Bind Target}" Visibility="{x:Bind Visible, Mode=OneWay}"
-                                ToolTipService.ToolTip="{x:Bind Provenance, Mode=OneWay}" AutomationProperties.Name="{x:Bind Label}">
-                            <Grid RowSpacing="2">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                    <TextBlock Text="{x:Bind Label}" Style="{StaticResource LabelTextStyle}" />
+                        <Border x:Name="InsightPanel" Grid.Column="1" VerticalAlignment="Stretch" CornerRadius="{StaticResource RadiusLarge}" Padding="20,18,20,20"
+                                Background="{ThemeResource SurfaceSunkenBrush}" BorderThickness="1" BorderBrush="{ThemeResource BorderSubtleBrush}">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Border Width="24" Height="24" CornerRadius="6" Background="{ThemeResource AccentSubtleBrush}">
+                                        <FontIcon Glyph="&#xE945;" FontSize="12" Foreground="{ThemeResource AccentGlyphBrush}" />
+                                    </Border>
+                                    <TextBlock Text="SENTINEL INSIGHT" Style="{StaticResource EyebrowTextStyle}" FontSize="11" />
                                 </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{x:Bind Value, Mode=OneWay}" Style="{StaticResource MetricValueTextStyle}" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Row="2" Text="{x:Bind Caption, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1" />
-                                <c:Sparkline Grid.Row="3" Points="{x:Bind Spark, Mode=OneWay}" ColorIndex="{x:Bind ColorIndex}" Max="{x:Bind SparkMaxOrNaN}" Height="40" Margin="0,10,0,0" VerticalAlignment="Bottom" />
-                            </Grid>
-                        </Button>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+                                <TextBlock Text="{x:Bind Vm.InsightText, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{x:Bind Vm.InsightConfidence, Mode=OneWay}" Style="{StaticResource LabelTextStyle}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
 
-            <!-- Details -->
-            <Grid x:Name="DetailGrid" Grid.Row="2" ColumnSpacing="16" RowSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" />
-                    <ColumnDefinition x:Name="SideColumn" Width="2*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                <!-- Hardware overview: balanced rows, every tile opens its page. -->
+                <c:AdaptiveGrid MinItemWidth="210" MaxColumns="6">
+                    <ContentControl Content="{x:Bind Vm.Tiles[0]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[0].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                    <ContentControl Content="{x:Bind Vm.Tiles[1]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[1].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                    <ContentControl Content="{x:Bind Vm.Tiles[2]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[2].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                    <ContentControl Content="{x:Bind Vm.Tiles[3]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[3].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                    <ContentControl Content="{x:Bind Vm.Tiles[4]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[4].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                    <ContentControl Content="{x:Bind Vm.Tiles[5]}" ContentTemplate="{StaticResource HomeTileTemplate}" Visibility="{x:Bind Vm.Tiles[5].Visible, Mode=OneWay}"
+                                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsTabStop="False" />
+                </c:AdaptiveGrid>
 
-                <Border Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="4">
-                        <Grid>
-                            <TextBlock Text="Recent events" Style="{StaticResource SectionTitleTextStyle}" />
-                            <HyperlinkButton Content="Timeline" HorizontalAlignment="Right" Click="OnTimelineClick" Padding="4,0" />
-                        </Grid>
-                        <TextBlock Text="No notable events in the last three days." Style="{StaticResource MutedTextStyle}"
-                                   Visibility="{x:Bind local:Bool.Not(Vm.HasEvents), Mode=OneWay}" />
-                        <ItemsRepeater ItemsSource="{x:Bind Vm.RecentEvents}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Spacing="2" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="vm:EventRow">
-                                    <Grid ColumnSpacing="12" Padding="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="16" VerticalAlignment="Top" Margin="0,2,0,0" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyTextStyle}" MaxLines="2" TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" HorizontalAlignment="Right">
-                                            <TextBlock Text="{x:Bind Time}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" />
-                                            <TextBlock Text="{x:Bind SeverityLabel}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" FontWeight="SemiBold" />
-                                        </StackPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Border>
+                <!-- Details -->
+                <Grid ColumnSpacing="16" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition x:Name="SideColumn" Width="2*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <Border x:Name="HealthCard" Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="10">
-                        <Grid>
-                            <TextBlock Text="Health" Style="{StaticResource SectionTitleTextStyle}" />
-                            <HyperlinkButton Content="Details" HorizontalAlignment="Right" Click="OnHealthClick" Padding="4,0" />
-                        </Grid>
-                        <ItemsRepeater ItemsSource="{x:Bind Vm.HealthChips}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Spacing="10" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="vm:HealthChip">
-                                    <Grid ColumnSpacing="12" ToolTipService.ToolTip="{x:Bind Summary}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
-                                        <c:StatusPill Grid.Column="1" Status="{x:Bind Status}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Border>
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="8">
+                            <c:CardHeader Title="Recent events" Glyph="&#xE81C;">
+                                <c:CardHeader.Actions>
+                                    <HyperlinkButton Content="Open timeline" Click="OnTimelineClick" />
+                                </c:CardHeader.Actions>
+                            </c:CardHeader>
+                            <c:EmptyState Glyph="&#xE930;" Title="All quiet" Message="No notable events in the last three days."
+                                          Visibility="{x:Bind local:Bool.Not(Vm.HasEvents), Mode=OneWay}" />
+                            <ItemsRepeater ItemsSource="{x:Bind Vm.RecentEvents}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="0" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:EventRow">
+                                        <Grid ColumnSpacing="14" Padding="0,9" ToolTipService.ToolTip="{x:Bind FullTime}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="32" Height="32" CornerRadius="16" Background="{ThemeResource SurfaceSunkenBrush}" VerticalAlignment="Top">
+                                                <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{x:Bind Title}" Style="{StaticResource BodyTextStyle}" MaxLines="2" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{x:Bind Detail}" Style="{StaticResource LabelTextStyle}" MaxLines="1" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{x:Bind Time}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" TextWrapping="NoWrap" />
+                                                <TextBlock Text="{x:Bind SeverityLabel}" Style="{StaticResource LabelTextStyle}" HorizontalAlignment="Right" FontWeight="SemiBold" TextWrapping="NoWrap" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
 
-                <Border Grid.Row="1" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="6">
-                        <Grid>
-                            <TextBlock Text="Active applications" Style="{StaticResource SectionTitleTextStyle}" />
-                            <HyperlinkButton Content="Processes" HorizontalAlignment="Right" Click="OnProcessesClick" Padding="4,0" />
-                        </Grid>
-                        <TextBlock Text="{x:Bind Vm.AppsNote, Mode=OneWay}" Style="{StaticResource MutedTextStyle}" />
-                        <ItemsRepeater ItemsSource="{x:Bind Vm.TopApps}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Spacing="2" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="vm:AppRow">
-                                    <Grid ColumnSpacing="16" Padding="0,6">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="64" />
-                                            <ColumnDefinition Width="84" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1" />
-                                            <TextBlock Text="{x:Bind Impact}" Style="{StaticResource LabelTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="1" Text="{x:Bind Cpu}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{x:Bind Memory}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Border>
-
-                <Border x:Name="InsightsCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Insights" Style="{StaticResource SectionTitleTextStyle}" />
-                        <ItemsRepeater ItemsSource="{x:Bind Vm.Insights}">
-                            <ItemsRepeater.Layout>
-                                <StackLayout Spacing="14" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="vm:InsightRow">
-                                    <StackPanel Spacing="4">
-                                        <Grid ColumnSpacing="8">
+                    <Border x:Name="HealthCard" Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="12">
+                            <c:CardHeader Title="Health" Glyph="&#xE95E;">
+                                <c:CardHeader.Actions>
+                                    <HyperlinkButton Content="Details" Click="OnHealthClick" />
+                                </c:CardHeader.Actions>
+                            </c:CardHeader>
+                            <ItemsRepeater ItemsSource="{x:Bind Vm.HealthChips}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="4" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:HealthChip">
+                                        <Grid ColumnSpacing="12" MinHeight="34" ToolTipService.ToolTip="{x:Bind Summary}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" />
-                                            <TextBlock Grid.Column="1" Text="{x:Bind ConfidenceLabel}" Style="{StaticResource LabelTextStyle}" />
+                                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
+                                            <c:StatusPill Grid.Column="1" Status="{x:Bind Status}" VerticalAlignment="Center" />
                                         </Grid>
-                                        <TextBlock Text="{x:Bind Summary}" Style="{StaticResource MutedTextStyle}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
-                    </StackPanel>
-                </Border>
-            </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
 
-        </Grid>
-    </ScrollViewer>
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="8">
+                            <c:CardHeader Title="Active applications" Glyph="&#xE9F5;" Subtitle="{x:Bind Vm.AppsNote, Mode=OneWay}">
+                                <c:CardHeader.Actions>
+                                    <HyperlinkButton Content="Processes" Click="OnProcessesClick" />
+                                </c:CardHeader.Actions>
+                            </c:CardHeader>
+                            <ItemsRepeater ItemsSource="{x:Bind Vm.TopApps}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="0" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:AppRow">
+                                        <Grid ColumnSpacing="16" Padding="0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="64" />
+                                                <ColumnDefinition Width="88" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                                                <TextBlock Text="{x:Bind Impact}" Style="{StaticResource LabelTextStyle}" TextTrimming="CharacterEllipsis" MaxLines="1" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Cpu}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                            <TextBlock Grid.Column="2" Text="{x:Bind Memory}" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="InsightsCard" Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="12">
+                            <c:CardHeader Title="Insights" Glyph="&#xE82F;" />
+                            <ItemsRepeater ItemsSource="{x:Bind Vm.Insights}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="12" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:InsightRow">
+                                        <Border Style="{StaticResource SunkenPanelStyle}" Padding="14,12">
+                                            <StackPanel Spacing="4">
+                                                <Grid ColumnSpacing="8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                    <TextBlock Grid.Column="1" Text="{x:Bind ConfidenceLabel}" Style="{StaticResource LabelTextStyle}" TextWrapping="NoWrap" />
+                                                </Grid>
+                                                <TextBlock Text="{x:Bind Summary}" Style="{StaticResource MutedTextStyle}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </local:SentinelPage>

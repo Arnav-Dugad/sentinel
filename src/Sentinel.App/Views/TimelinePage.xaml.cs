@@ -19,7 +19,7 @@ public sealed partial class TimelinePage : SentinelPage
         InitializeComponent();
         foreach (var name in Vm.FilterNames)
         {
-            var toggle = new ToggleButton { Content = name, IsChecked = true, Padding = new Thickness(12, 4, 12, 5) };
+            var toggle = new ToggleButton { Content = name, IsChecked = true, Style = (Style)Application.Current.Resources["ChipToggleButtonStyle"] };
             toggle.Click += (_, _) => Vm.ToggleFilter(name, toggle.IsChecked == true);
             FilterPanel.Children.Add(toggle);
         }

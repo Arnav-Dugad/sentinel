@@ -113,7 +113,7 @@ public sealed partial class BatteryViewModel : PageViewModel
             Sessions.Add(new SessionRow(
                 s.Kind switch { PowerSessionKind.Charge => "Plugged in", PowerSessionKind.Sleep => "Asleep", _ => "On battery" },
                 s.Kind switch { PowerSessionKind.Charge => "", PowerSessionKind.Sleep => "", _ => "" },
-                s.Start.ToString("ddd d MMM, t", CultureInfo.CurrentCulture),
+                UnitFormatter.When(s.Start),
                 UnitFormatter.Duration(s.Duration),
                 s.StartPercent is { } a && s.EndPercent is { } e ? $"{a:F0}% → {e:F0}%" : "—",
                 s.AverageWatts is { } w ? $"{Math.Abs(w):F1} W avg" : "",

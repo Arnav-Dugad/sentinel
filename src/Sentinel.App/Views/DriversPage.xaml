@@ -7,15 +7,12 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Drivers" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Drivers" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}" />
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Driver timeline (90 days)" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Driver timeline (90 days)" Glyph="&#xE81C;" Margin="0,0,0,4" />
                     <TextBlock Text="{x:Bind Vm.Correlation, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" Visibility="{x:Bind local:Bool.HasText(Vm.Correlation), Mode=OneWay}" />
                     <TextBlock Text="No driver changes were recorded." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Timeline.Count), Mode=OneWay}" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Timeline}">

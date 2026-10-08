@@ -78,7 +78,8 @@ public sealed class TimelineService(HistoryStore store, LiveMetricStore live, Un
         var tolerance = TimeSpan.FromMinutes(at > DateTimeOffset.Now.AddDays(-2) ? 2 : 35);
         void Add(string key, Func<double, string> fmt)
         {
-            if (store.ValueAt(key, at, tolerance) is not { } p) return;
+            // Stored history first; for the last few minutes (not yet written to disk) fall back to the live buffer.
+            if ((store.ValueAt(key, at, tolerance) ?? LiveAt(key, at)) is not { } p) return;
             var name = live.GetDefinition(key)?.Name ?? key;
             metrics.Add((name, fmt(p.Avg) + (Math.Abs(p.Max - p.Min) > 0.01 ? $"  (range {fmt(p.Min)}–{fmt(p.Max)})" : ""), $"Sentinel history, {p.Timestamp:t}"));
         }
@@ -90,8 +91,8 @@ public sealed class TimelineService(HistoryStore store, LiveMetricStore live, Un
             Add(k.Key, v => units.Temperature(v));
         Add(MetricKeys.MemUsedPct, v => $"{v:F0}%");
         Add(MetricKeys.MemCommit, v => units.Bytes(v));
-        Add(MetricKeys.DiskRead, v => units.Throughput(v));
-        Add(MetricKeys.DiskWrite, v => units.Throughput(v));
+        Add(MetricKeys.DiskRead, v => units.DiskRate(v));
+        Add(MetricKeys.DiskWrite, v => units.DiskRate(v));
         Add(MetricKeys.NetRx, v => units.Throughput(v));
         Add(MetricKeys.NetTx, v => units.Throughput(v));
         Add(MetricKeys.BatPercent, v => $"{v:F0}%");
@@ -100,6 +101,14 @@ public sealed class TimelineService(HistoryStore store, LiveMetricStore live, Un
         var events = store.QueryEvents(at.AddMinutes(-20), at.AddMinutes(20), null, 50).OrderBy(e => e.Timestamp).ToList();
         var apps = store.AppUsageAt(at);
         return new TimeMachineSnapshot(at, metrics, events, apps, metrics.Count > 0 || events.Count > 0);
+    }
+
+    private SeriesPoint? LiveAt(string key, DateTimeOffset at)
+    {
+        if (DateTimeOffset.Now - at > TimeSpan.FromMinutes(15)) return null;
+        var near = live.Get(key)?.Since(at.AddSeconds(-30)).Where(p => p.Timestamp <= at.AddSeconds(30) && !double.IsNaN(p.Value)).ToList();
+        if (near is not { Count: > 0 }) return null;
+        return new SeriesPoint(at, near.Average(p => p.Value), near.Min(p => p.Value), near.Max(p => p.Value));
     }
 
     private static readonly (string Key, string Name, string Kind, bool HigherIsWorse)[] CompareMetrics =
@@ -131,7 +140,7 @@ public sealed class TimelineService(HistoryStore store, LiveMetricStore live, Un
             {
                 "temp" => units.Temperature(x),
                 "watts" => $"{x:F1} W",
-                "tput" => units.Throughput(x),
+                "tput" => units.Rate(key, x),
                 _ => $"{x:F0}%",
             };
             var delta = va is { } x && vb is { } y
@@ -139,7 +148,7 @@ public sealed class TimelineService(HistoryStore store, LiveMetricStore live, Un
                 {
                     "temp" => units.TemperatureDelta(y - x),
                     "watts" => $"{y - x:+0.0;-0.0} W",
-                    "tput" => (y >= x ? "+" : "−") + units.Throughput(Math.Abs(y - x)),
+                    "tput" => (y >= x ? "+" : "−") + units.Rate(key, Math.Abs(y - x)),
                     _ => $"{y - x:+0;-0} pts",
                 }
                 : "—";

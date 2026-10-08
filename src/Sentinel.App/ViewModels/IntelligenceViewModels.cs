@@ -141,7 +141,7 @@ public sealed partial class TimelineViewModel : PageViewModel
         var ctx = Services.GetRequiredService<CorrelationEngine>().Explain(row.Event);
         SelectedSummary = ctx.Summary;
         foreach (var c in ctx.Related.Take(12))
-            Related.Add(new CorrelationRow(c.Strength.Label(), c.Related.Title, c.Related.Timestamp.ToString("g", CultureInfo.CurrentCulture), c.Rationale, c.Strength));
+            Related.Add(new CorrelationRow(c.Strength.Label(), c.Related.Title, UnitFormatter.When(c.Related.Timestamp), c.Rationale, c.Strength));
         var extra = new List<InfoItem>();
         if (row.Event.Code is { } code && row.Event.Category == EventCategory.Bugcheck && BugcheckCatalog.Lookup(code) is { } bc)
         {
@@ -173,7 +173,7 @@ public sealed partial class TimelineViewModel : PageViewModel
         var groups = Services.GetRequiredService<TimelineService>().WhatChanged(range);
         Changes.Clear();
         foreach (var g in groups)
-            Changes.Add(new ChangeGroupRow(g.Kind, g.Glyph, g.Items.Take(40).Select(i => new ChangeItemRow(i.Timestamp.ToString("MMM d, t", CultureInfo.CurrentCulture), i.Title,
+            Changes.Add(new ChangeGroupRow(g.Kind, g.Glyph, g.Items.Take(40).Select(i => new ChangeItemRow(UnitFormatter.When(i.Timestamp), i.Title,
                 i.Before is null && i.After is null ? "" : $"{i.Before ?? "—"} → {i.After ?? "—"}", i.Source)).ToList()));
         ChangeCount = groups.Sum(g => g.Items.Count);
         ChangeRangeLabel = ChangeCount == 0 ? $"No changes recorded {range.Label}." : $"{ChangeCount} change{(ChangeCount == 1 ? "" : "s")} {range.Label}.";
@@ -202,7 +202,7 @@ public sealed partial class AnomaliesViewModel : PageViewModel
         var now = DateTimeOffset.Now;
         var all = Services.GetRequiredService<HistoryStore>().QueryAnomalies(now.AddDays(-30), now);
         AnomalyCard Card(Anomaly a) => new(a.Title, a.Description, a.Severity, a.Severity switch { Severity.Critical => HealthStatus.Critical, Severity.Warning => HealthStatus.Attention, _ => HealthStatus.Normal },
-            a.Severity.Label(), $"{a.Start:g} · {UnitFormatter.Duration(a.Duration)}" + (a.Active ? " · ongoing" : ""), a.DeviationText, a.Confidence.Label(),
+            a.Severity.Label(), $"{UnitFormatter.When(a.Start)} · {UnitFormatter.Duration(a.Duration)}" + (a.Active ? " · ongoing" : ""), a.DeviationText, a.Confidence.Label(),
             a.Evidence.Select(e => new EvidenceRow(e.Kind, e.Statement, e.Source)).ToList(),
             a.CorrelatedEvents.Count == 0 ? "" : "Around the same time: " + string.Join(" · ", a.CorrelatedEvents), a.Active);
         Sync(Active, all.Where(a => a.Active).Select(Card).ToList());
@@ -215,7 +215,7 @@ public sealed partial class AnomaliesViewModel : PageViewModel
                 MetricUnit.Celsius => U.Temperature(v),
                 MetricUnit.Percent => $"{v:F0}%",
                 MetricUnit.Watts => $"{v:F1} W",
-                MetricUnit.BytesPerSecond => U.Throughput(v),
+                MetricUnit.BytesPerSecond => U.Rate(b.MetricKey, v),
                 _ => v.ToString("F1", CultureInfo.CurrentCulture),
             };
             return new BaselineRow(def?.Name ?? b.MetricKey, BaselineContexts.Describe(Enum.TryParse<BaselineContext>(b.Context, true, out var c) ? c : BaselineContext.All),
@@ -223,7 +223,7 @@ public sealed partial class AnomaliesViewModel : PageViewModel
         }).ToList();
         Sync(Baselines, baselines);
         Summary = Active.Count == 0
-            ? "Nothing unusual right now. Sentinel compares live behaviour with what is normal for this PC, in the same context (idle, under load, on battery)."
+            ? "Nothing unusual right now. Sentinel compares live behavior with what is normal for this PC, in the same context (idle, under load, on battery)."
             : $"{Active.Count} unusual pattern{(Active.Count == 1 ? "" : "s")} right now.";
     }
 
@@ -267,13 +267,13 @@ public sealed partial class ReliabilityViewModel : PageViewModel
         model.Series.Add(new ChartSeries { Name = "App crashes and hangs", ColorIndex = 3, Fill = true, Points = Daily(e => e.Category is EventCategory.AppCrash or EventCategory.AppHang), Format = v => $"{v:F0}" });
         model.Series.Add(new ChartSeries { Name = "System failures", ColorIndex = 5, Fill = true, Points = Daily(e => e.Category is EventCategory.Bugcheck or EventCategory.UnexpectedShutdown or EventCategory.HardwareError), Format = v => $"{v:F0}" });
         model.Series.Add(new ChartSeries { Name = "Driver and service failures", ColorIndex = 4, Points = Daily(e => e.Category is EventCategory.DisplayDriverReset or EventCategory.DriverFailure or EventCategory.ServiceFailure or EventCategory.StorageError), Format = v => $"{v:F0}" });
-        foreach (var b in events.Where(e => e.Category == EventCategory.Bugcheck)) model.Markers.Add(new ChartMarker(b.Timestamp, $"{b.Timestamp:g} {b.Title}"));
+        foreach (var b in events.Where(e => e.Category == EventCategory.Bugcheck)) model.Markers.Add(new ChartMarker(b.Timestamp, $"{UnitFormatter.Absolute(b.Timestamp)} {b.Title}"));
         Chart = model;
 
         var stops = events.Where(e => e.Category == EventCategory.Bugcheck).Select(e =>
         {
             var entry = e.Code is null ? null : BugcheckCatalog.Lookup(e.Code);
-            return new StopErrorRow(e.Timestamp.ToString("g", CultureInfo.CurrentCulture), e.Code ?? "—", entry?.Name ?? "Unrecognised stop code", entry?.Category ?? "", entry?.Explanation ?? "");
+            return new StopErrorRow(UnitFormatter.When(e.Timestamp), e.Code ?? "—", entry?.Name ?? "Unrecognized stop code", entry?.Category ?? "", entry?.Explanation ?? "");
         }).ToList();
         StopErrors.Clear();
         foreach (var s in stops) StopErrors.Add(s);
@@ -284,7 +284,7 @@ public sealed partial class ReliabilityViewModel : PageViewModel
             var crashes = g.Count(e => e.Category == EventCategory.AppCrash);
             var hangs = g.Count(e => e.Category == EventCategory.AppHang);
             var module = g.Select(e => e.Detail).Where(d => d is not null).GroupBy(d => d).OrderByDescending(m => m.Count()).FirstOrDefault()?.Key ?? "";
-            Apps.Add(new AppCrashRow(g.Key, $"{crashes} crash{(crashes == 1 ? "" : "es")}, {hangs} hang{(hangs == 1 ? "" : "s")}", g.Max(e => e.Timestamp).ToString("g", CultureInfo.CurrentCulture), module));
+            Apps.Add(new AppCrashRow(g.Key, $"{crashes} crash{(crashes == 1 ? "" : "es")}, {hangs} hang{(hangs == 1 ? "" : "s")}", UnitFormatter.When(g.Max(e => e.Timestamp)), module));
         }
 
         Events.Clear();

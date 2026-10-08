@@ -23,6 +23,7 @@ public sealed class GpuProvider(ILogger<GpuProvider> log) : WindowsProvider(log)
     private readonly Dictionary<string, IntPtr> _nvmlHandles = [];
     private readonly Dictionary<string, DateTimeOffset> _lastActive = [];
     private readonly Dictionary<string, (double Slowdown, double Shutdown)> _thresholds = [];
+    private readonly Dictionary<string, double> _powerCeilings = [];
     private bool _hasBattery;
     private List<MetricDefinition> _pendingDefinitions = [];
 
@@ -82,6 +83,8 @@ public sealed class GpuProvider(ILogger<GpuProvider> log) : WindowsProvider(log)
                         used.Add(n);
                         _nvmlHandles[a.Id] = h;
                         _thresholds[a.Id] = (_nvml.TemperatureThreshold(h, 1) ?? double.NaN, _nvml.TemperatureThreshold(h, 0) ?? double.NaN);
+                        // Read alongside the thresholds in this one-time start-up query; used to reject impossible power readings.
+                        _powerCeilings[a.Id] = PowerCeiling(_nvml.PowerLimitMilliwatts(h), a.Name);
                         adapters[i] = a with { VendorTelemetryAvailable = true, VendorTelemetrySource = NvmlSource };
                         break;
                     }
@@ -197,6 +200,17 @@ public sealed class GpuProvider(ILogger<GpuProvider> log) : WindowsProvider(log)
         return Task.CompletedTask;
     }
 
+    public double? PowerCeilingW(string adapterId) => _powerCeilings.TryGetValue(adapterId, out var w) ? w : null;
+
+    /// <summary>
+    /// 1.25 × the enforced limit when NVML reports one. Many laptop GPUs do not, so laptop parts fall back to 200 W
+    /// (no NVIDIA laptop GPU is rated above 175 W) and anything else to 1,000 W.
+    /// </summary>
+    public static double PowerCeiling(uint? enforcedLimitMilliwatts, string? name) =>
+        enforcedLimitMilliwatts is > 1000 and < 2_000_000 ? enforcedLimitMilliwatts.Value / 1000.0 * 1.25
+        : name?.Contains("Laptop", StringComparison.OrdinalIgnoreCase) == true ? 200
+        : 1000;
+
     public (double? Slowdown, double? Shutdown) TemperatureLimits(string adapterId) =>
         _thresholds.TryGetValue(adapterId, out var t)
             ? (double.IsNaN(t.Slowdown) || t.Slowdown <= 0 ? null : t.Slowdown, double.IsNaN(t.Shutdown) || t.Shutdown <= 0 ? null : t.Shutdown)
@@ -206,17 +220,23 @@ public sealed class GpuProvider(ILogger<GpuProvider> log) : WindowsProvider(log)
     {
         var n = _nvml!;
         Reading R(double? v, string what) => v is { } x ? Good(x, NvmlSource, now) : Reading.Unavailable($"{what} is not reported by this GPU's driver", NvmlSource);
+        // Drivers occasionally return garbage while a GPU is entering or leaving a low-power state (e.g. 590 W on a
+        // 140 W laptop GPU). Physically impossible values are discarded rather than recorded.
+        Reading Checked(double? v, string what, double min, double max) =>
+            v is { } x && (x < min || x > max) ? Reading.Unavailable($"{what} reading was implausible and was discarded", NvmlSource) : R(v, what);
         var throttle = n.ThrottleReasons(h);
         var util = n.Util(h);
+        var limitW = n.PowerLimitMilliwatts(h) / 1000.0;
+        var maxPowerW = _powerCeilings.TryGetValue(id, out var ceiling) ? ceiling : 1000;
         return s with
         {
-            Temperature = R(n.Temperature(h), "Temperature"),
+            Temperature = Checked(n.Temperature(h), "Temperature", 1, 130),
             HotspotTemperature = Reading.Unsupported("Hotspot temperature is not exposed through NVML's public API"),
-            PowerW = R(n.PowerMilliwatts(h) / 1000.0, "Power draw"),
-            PowerLimitW = R(n.PowerLimitMilliwatts(h) / 1000.0, "Power limit"),
-            CoreClockMhz = R(n.ClockMhz(h, 0), "Graphics clock"),
-            MemoryClockMhz = R(n.ClockMhz(h, 2), "Memory clock"),
-            FanPercent = R(n.FanPercent(h), "Fan speed"),
+            PowerW = Checked(n.PowerMilliwatts(h) / 1000.0, "Power draw", 0, maxPowerW),
+            PowerLimitW = Checked(limitW, "Power limit", 1, 2000),
+            CoreClockMhz = Checked(n.ClockMhz(h, 0), "Graphics clock", 0, 5000),
+            MemoryClockMhz = Checked(n.ClockMhz(h, 2), "Memory clock", 0, 30000),
+            FanPercent = Checked(n.FanPercent(h), "Fan speed", 0, 100),
             PerformanceState = R(n.PerformanceState(h), "Performance state"),
             EncoderPercent = R(n.EncoderPercent(h), "Encoder utilization"),
             DecoderPercent = R(n.DecoderPercent(h), "Decoder utilization"),

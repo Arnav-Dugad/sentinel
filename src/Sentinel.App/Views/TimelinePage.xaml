@@ -8,14 +8,12 @@
 
     <Grid>
         <ScrollViewer>
-            <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="16">
-                <StackPanel Margin="0,16,0,0" Spacing="12">
-                    <TextBlock Text="Timeline" Style="{StaticResource PageTitleTextStyle}" />
-                    <SelectorBar x:Name="Sections" SelectionChanged="OnSectionChanged">
-                        <SelectorBarItem Text="System timeline" IsSelected="True" />
-                        <SelectorBarItem Text="What changed?" />
-                    </SelectorBar>
-                </StackPanel>
+            <StackPanel Style="{StaticResource PageContentStyle}">
+                <c:PageHeader Title="Timeline" />
+                <SelectorBar Margin="-12,-8,0,0" x:Name="Sections" SelectionChanged="OnSectionChanged">
+                    <SelectorBarItem Text="System timeline" IsSelected="True" />
+                    <SelectorBarItem Text="What changed?" />
+                </SelectorBar>
 
                 <!-- System timeline -->
                 <StackPanel x:Name="TimelinePanel" Spacing="16">
@@ -24,14 +22,15 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel x:Name="FilterPanel" Orientation="Horizontal" Spacing="6" />
-                        <ComboBox Grid.Column="1" x:Name="RangeBox" SelectionChanged="OnRangeChanged" MinWidth="140" AutomationProperties.Name="Time range">
+                        <c:WrapPanel x:Name="FilterPanel" HorizontalSpacing="8" VerticalSpacing="8" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" x:Name="RangeBox" SelectionChanged="OnRangeChanged" MinWidth="160" VerticalAlignment="Center" AutomationProperties.Name="Time range">
                             <ComboBoxItem Content="Last 24 hours" Tag="1" />
                             <ComboBoxItem Content="Last 7 days" Tag="7" IsSelected="True" />
                             <ComboBoxItem Content="Last 30 days" Tag="30" />
                         </ComboBox>
                     </Grid>
-                    <TextBox PlaceholderText="Filter events (for example: crash, NVIDIA, Wi-Fi)" Text="{x:Bind Vm.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <AutoSuggestBox PlaceholderText="Filter events (for example: crash, NVIDIA, Wi-Fi)" QueryIcon="Filter" Text="{x:Bind Vm.Search, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    AutomationProperties.Name="Filter events" />
 
                     <c:AdaptiveGrid MinItemWidth="420" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                         <Border Style="{StaticResource CardStyle}">
@@ -39,21 +38,23 @@
                                 <ItemsRepeater.Layout><StackLayout Spacing="18" /></ItemsRepeater.Layout>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="vm:TimelineDay">
-                                        <StackPanel Spacing="4">
-                                            <TextBlock Text="{x:Bind Header}" Style="{StaticResource EyebrowTextStyle}" />
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="{x:Bind Header}" Style="{StaticResource EyebrowTextStyle}" Margin="12,0,0,0" />
                                             <ListView ItemsSource="{x:Bind Events}" SelectionMode="Single" SelectionChanged="OnEventSelected" IsItemClickEnabled="False"
                                                       ItemContainerStyle="{StaticResource TableListViewItemStyle}" ScrollViewer.VerticalScrollMode="Disabled">
                                                 <ListView.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:EventRow">
-                                                        <Grid ColumnSpacing="12" Padding="0,6">
+                                                        <Grid ColumnSpacing="12" Padding="0,8" ToolTipService.ToolTip="{x:Bind FullTime}">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="Auto" />
-                                                                <ColumnDefinition Width="56" />
+                                                                <ColumnDefinition Width="64" />
                                                                 <ColumnDefinition Width="*" />
                                                             </Grid.ColumnDefinitions>
-                                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="15" Foreground="{ThemeResource TextSecondaryBrush}" />
-                                                            <TextBlock Grid.Column="1" Text="{x:Bind ShortTime}" Style="{StaticResource MutedTextStyle}" />
-                                                            <StackPanel Grid.Column="2">
+                                                            <Border Width="30" Height="30" CornerRadius="15" Background="{ThemeResource SurfaceSunkenBrush}" VerticalAlignment="Top">
+                                                                <FontIcon Glyph="{x:Bind Glyph}" FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}" />
+                                                            </Border>
+                                                            <TextBlock Grid.Column="1" Text="{x:Bind ShortTime}" Style="{StaticResource MutedTextStyle}" Margin="0,5,0,0" TextWrapping="NoWrap" />
+                                                            <StackPanel Grid.Column="2" Spacing="2" Margin="0,5,0,0">
                                                                 <TextBlock Text="{x:Bind Title}" TextWrapping="Wrap" />
                                                                 <TextBlock Style="{StaticResource LabelTextStyle}"><Run Text="{x:Bind Category}" /><Run Text="  " /><Run Text="{x:Bind SeverityLabel}" FontWeight="SemiBold" /></TextBlock>
                                                             </StackPanel>
@@ -69,7 +70,7 @@
 
                         <Border Style="{StaticResource CardStyle}" VerticalAlignment="Top">
                             <StackPanel Spacing="12">
-                                <TextBlock Text="Event details" Style="{StaticResource SectionTitleTextStyle}" />
+                                <c:CardHeader Title="Event details" Glyph="&#xE946;" />
                                 <TextBlock Text="Select an event to see what happened around it and how strongly other events relate to it." Style="{StaticResource MutedTextStyle}"
                                            Visibility="{x:Bind local:Bool.Not(Vm.HasSelection), Mode=OneWay}" />
                                 <TextBlock Text="{x:Bind Vm.Selected.Title, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -98,13 +99,13 @@
 
                 <!-- What changed -->
                 <StackPanel x:Name="ChangesPanel" Spacing="16" Visibility="Collapsed">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="Since yesterday" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="yesterday" />
-                        <Button Content="Last week" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="week" />
-                        <Button Content="Since last restart" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="restart" />
-                        <Button Content="Last 30 days" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="month" />
+                    <c:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
+                        <Button Content="Since yesterday" Style="{StaticResource SuggestionButtonStyle}" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="yesterday" />
+                        <Button Content="Last week" Style="{StaticResource SuggestionButtonStyle}" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="week" />
+                        <Button Content="Since last restart" Style="{StaticResource SuggestionButtonStyle}" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="restart" />
+                        <Button Content="Last 30 days" Style="{StaticResource SuggestionButtonStyle}" Command="{x:Bind Vm.ChangesSinceCommand}" CommandParameter="month" />
                         <CalendarDatePicker x:Name="CustomDate" PlaceholderText="Since a date…" DateChanged="OnCustomDate" />
-                    </StackPanel>
+                    </c:WrapPanel>
                     <TextBlock Text="{x:Bind Vm.ChangeRangeLabel, Mode=OneWay}" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Changes}">
                         <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
@@ -112,10 +113,7 @@
                             <DataTemplate x:DataType="vm:ChangeGroupRow">
                                 <Border Style="{StaticResource CardStyle}">
                                     <StackPanel Spacing="8">
-                                        <StackPanel Orientation="Horizontal" Spacing="10">
-                                            <FontIcon Glyph="{x:Bind Glyph}" FontSize="16" />
-                                            <TextBlock Text="{x:Bind Kind}" Style="{StaticResource SectionTitleTextStyle}" Margin="0" />
-                                        </StackPanel>
+                                        <c:CardHeader Title="{x:Bind Kind}" Glyph="{x:Bind Glyph}" />
                                         <ItemsRepeater ItemsSource="{x:Bind Items}">
                                             <ItemsRepeater.Layout><StackLayout Spacing="6" /></ItemsRepeater.Layout>
                                             <ItemsRepeater.ItemTemplate>

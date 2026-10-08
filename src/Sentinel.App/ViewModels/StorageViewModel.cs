@@ -85,8 +85,8 @@ public sealed partial class StorageViewModel : PageViewModel
         {
             P.Storage.Health.TryGetValue(card.Id, out var h);
             var io = P.Storage.Io.FirstOrDefault(i => i.DiskId == card.Id);
-            card.Read = U.Throughput(io?.ReadBytesPerSec.Value);
-            card.Write = U.Throughput(io?.WriteBytesPerSec.Value);
+            card.Read = U.DiskRate(io?.ReadBytesPerSec.Value);
+            card.Write = U.DiskRate(io?.WriteBytesPerSec.Value);
             card.Active = UnitFormatter.Percent(io?.ActivePercent.Value);
             card.Latency = io?.LatencyMs.Value is { } l ? $"{l:F2} ms" : "—";
             if (h is null) continue;
@@ -130,8 +130,8 @@ public sealed partial class StorageViewModel : PageViewModel
         var live = RangeKey == ChartData.Live;
         var (from, to) = ChartData.Range(RangeKey, now);
         var model = new ChartModel { From = from, To = to, YMin = 0 };
-        model.Series.Add(new ChartSeries { Name = "Read", ColorIndex = 2, Fill = true, Points = ChartData.Points(MetricKeys.DiskRead, from, to, live), Format = v => U.Throughput(v) });
-        model.Series.Add(new ChartSeries { Name = "Write", ColorIndex = 3, Points = ChartData.Points(MetricKeys.DiskWrite, from, to, live), Format = v => U.Throughput(v) });
+        model.Series.Add(new ChartSeries { Name = "Read", ColorIndex = 2, Fill = true, Points = ChartData.Points(MetricKeys.DiskRead, from, to, live), Format = v => U.DiskRate(v) });
+        model.Series.Add(new ChartSeries { Name = "Write", ColorIndex = 3, Points = ChartData.Points(MetricKeys.DiskWrite, from, to, live), Format = v => U.DiskRate(v) });
         model.Series.Add(new ChartSeries { Name = "Active time", ColorIndex = 6, OwnScale = true, Min = 0, Max = 100, Dashed = true, Points = ChartData.Points(MetricKeys.DiskActive, from, to, live), Format = v => $"{v:F0}%" });
         if (!live) ChartData.Annotate(model, [EventCategory.StorageError, EventCategory.UpdateInstalled], k => k.StartsWith("disk", StringComparison.Ordinal));
         Chart = model;

@@ -7,15 +7,12 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Reliability" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="{x:Bind Vm.Summary, Mode=OneWay}" Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Reliability" Subtitle="{x:Bind Vm.Summary, Mode=OneWay}" />
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Last 30 days" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Last 30 days" Glyph="&#xE9D2;" />
                     <c:SentinelChart x:Name="Chart" Height="200" AutomationProperties.Name="Reliability events per day" />
                     <TextBlock Text="Events per day. Triangles mark stop errors." Style="{StaticResource LabelTextStyle}" />
                 </StackPanel>
@@ -24,13 +21,13 @@
             <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Summary" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Summary" Glyph="&#xE9D5;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Counts, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Stop errors" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Stop errors" Glyph="&#xE7BA;" Margin="0,0,0,2" />
                         <TextBlock Text="None in the last 30 days." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.StopErrors.Count), Mode=OneWay}" />
                         <ItemsRepeater ItemsSource="{x:Bind Vm.StopErrors}">
                             <ItemsRepeater.Layout><StackLayout Spacing="12" /></ItemsRepeater.Layout>
@@ -53,7 +50,7 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="10">
-                    <TextBlock Text="Applications" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Applications" Glyph="&#xE9F5;" Margin="0,0,0,2" />
                     <TextBlock Text="No application crashes or hangs in the last 30 days." Style="{StaticResource MutedTextStyle}" Visibility="{x:Bind local:Bool.Zero(Vm.Apps.Count), Mode=OneWay}" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Apps}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
@@ -81,10 +78,11 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
-                    <Grid>
-                        <TextBlock Text="Events" Style="{StaticResource SectionTitleTextStyle}" />
-                        <HyperlinkButton Content="Open in Timeline for details" HorizontalAlignment="Right" Click="OnTimeline" Padding="4,0" />
-                    </Grid>
+                    <c:CardHeader Title="Events" Glyph="&#xE81C;">
+                        <c:CardHeader.Actions>
+                            <HyperlinkButton Content="Open in Timeline for details" Click="OnTimeline" Padding="4,0" />
+                        </c:CardHeader.Actions>
+                    </c:CardHeader>
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Events}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>

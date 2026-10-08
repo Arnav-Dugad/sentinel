@@ -65,8 +65,8 @@ public sealed class InsightEngine(HistoryStore store, LiveMetricStore live, Base
         if (bugchecks.Count > 1) text += $" {bugchecks.Count} stop errors were recorded in the last 7 days.";
         return new Insight("bugcheck:" + last.DedupeKey, "Stop error", text, bugchecks.Count > 1 ? Severity.Critical : Severity.Warning, Confidence.High,
             [
-                new(EvidenceKind.Observed, $"Windows Error Reporting recorded stop code {last.Code} at {last.Timestamp:g}.", "System event log"),
-                new(EvidenceKind.Unknown, "The specific driver involved is recorded in the memory dump, which Sentinel does not upload or analyse."),
+                new(EvidenceKind.Observed, $"Windows Error Reporting recorded stop code {last.Code} at {UnitFormatter.Absolute(last.Timestamp)}.", "System event log"),
+                new(EvidenceKind.Unknown, "The specific driver involved is recorded in the memory dump, which Sentinel does not upload or analyze."),
             ], new RecommendedAction("Keep Windows and device drivers up to date through Windows Update or your PC manufacturer's support app.", "ms-settings:windowsupdate", "Open Windows Update"),
             "Reliability", last.Timestamp);
     }
@@ -169,7 +169,7 @@ public sealed class InsightEngine(HistoryStore store, LiveMetricStore live, Base
         if (now - last.End > TimeSpan.FromDays(2) || last.GpuTempPeak is not { } peak || last.GpuAvg is not { } gpuAvg) return null;
         var similar = sessions.Skip(1).Where(s => s.GpuAvg is { } g && Math.Abs(g - gpuAvg) < 15 && s.GpuTempPeak is not null).ToList();
         var text = $"Your GPU peaked at {units.Temperature(peak)} during a sustained {gpuAvg:F0}% load" + (last.AppName is { } app ? $" ({app})." : ".");
-        var evidence = new List<EvidenceItem> { new(EvidenceKind.Observed, $"Session {last.Start:g}, {UnitFormatter.Duration(last.Duration)}.", "Sentinel sessions") };
+        var evidence = new List<EvidenceItem> { new(EvidenceKind.Observed, $"Session {UnitFormatter.Absolute(last.Start)}, {UnitFormatter.Duration(last.Duration)}.", "Sentinel sessions") };
         if (similar.Count >= 2)
         {
             var typical = Statistics.Median(similar.Select(s => s.GpuTempPeak!.Value).ToList());

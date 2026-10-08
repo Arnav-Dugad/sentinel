@@ -33,7 +33,10 @@ Thanks for helping. Sentinel's value depends on being **trustworthy**: every num
 
 ## UI guidelines
 
-- Use the tokens in `Styles/Tokens.xaml`. Do not hard-code colours, spacing or font sizes. Check Light, Dark and High Contrast.
+- Use the tokens in `Styles/Tokens.xaml`. Do not hard-code colors, spacing or font sizes. Check Light, Dark and High Contrast.
+- Build pages from the shared anatomy: `StackPanel Style="{StaticResource PageContentStyle}"`, then `c:PageHeader`, then cards (`CardStyle`) that start with `c:CardHeader`. Never set a page-specific `MaxWidth` or padding, because every page must share the same left edge.
+- Put metric tiles in a `c:AdaptiveGrid` so rows balance. Use `MetricTile` with its own chrome at page level and `Chrome="False"` inside a card.
+- Times in lists use `UnitFormatter.When` (relative, compact). Sentences that may be stored use `UnitFormatter.Absolute`, which never goes stale. User-facing text is US English.
 - Every page needs a real empty state (`EmptyState`) that says why there is no data and what will make it appear. Do not add placeholder pages.
 - Keep work off the UI thread. Page view models refresh on `UiClock` only while visible, and must stop in `Deactivate`.
 - Accessibility: set `AutomationProperties.Name` on icon-only buttons and charts. All features must work by keyboard, and motion must respect *Reduce motion*.

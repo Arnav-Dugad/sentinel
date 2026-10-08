@@ -7,16 +7,13 @@
     xmlns:c="using:Sentinel.App.Controls">
 
     <ScrollViewer>
-        <StackPanel MaxWidth="{StaticResource ContentMaxWidth}" Padding="{StaticResource PagePadding}" Spacing="20">
-            <StackPanel Margin="0,16,0,0" Spacing="8">
-                <TextBlock Text="Performance diagnostics" Style="{StaticResource PageTitleTextStyle}" />
-                <TextBlock Text="Investigate slowdowns. Everything here is read-only and runs only when you ask." Style="{StaticResource PageSubtitleTextStyle}" />
-            </StackPanel>
+        <StackPanel Style="{StaticResource PageContentStyle}">
+            <c:PageHeader Title="Performance diagnostics" Subtitle="Investigate slowdowns. Everything here is read-only and runs only when you ask." />
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="30-second performance investigation" Style="{StaticResource SectionTitleTextStyle}" />
-                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="Start this while the slowdown is happening. Sentinel samples every sensor at its highest safe rate for 30 seconds, records which apps were busy, then stops automatically and summarises." />
+                    <c:CardHeader Title="30-second performance investigation" Glyph="&#xE9D9;" />
+                    <TextBlock Style="{StaticResource MutedTextStyle}" Text="Start this while the slowdown is happening. Sentinel samples every sensor at its highest safe rate for 30 seconds, records which apps were busy, then stops automatically and summarizes." />
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <Button Content="Start 30-second investigation" Style="{StaticResource AccentButtonStyle}" Command="{x:Bind Vm.InvestigateCommand}" IsEnabled="{x:Bind local:Bool.Invert(Vm.Running), Mode=OneWay}" />
                         <Button Content="Save report" Command="{x:Bind Vm.SaveReportCommand}" Visibility="{x:Bind local:Bool.Vis(Vm.HasResult), Mode=OneWay}" />
@@ -29,13 +26,13 @@
             <c:AdaptiveGrid MinItemWidth="400" MaxColumns="2" ColumnSpacing="16" RowSpacing="16" Visibility="{x:Bind local:Bool.Vis(Vm.HasResult), Mode=OneWay}">
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Findings" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Findings" Glyph="&#xE9D9;" Margin="0,0,0,2" />
                         <c:EvidenceList Items="{x:Bind Vm.Findings, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Measurements" Style="{StaticResource SectionTitleTextStyle}" />
+                        <c:CardHeader Title="Measurements" Glyph="&#xE9D2;" Margin="0,0,0,12" />
                         <c:InfoList Items="{x:Bind Vm.Metrics, Mode=OneWay}" />
                     </StackPanel>
                 </Border>
@@ -43,7 +40,7 @@
 
             <Border Style="{StaticResource CardStyle}" Visibility="{x:Bind local:Bool.Vis(Vm.HasResult), Mode=OneWay}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Busiest apps during the capture" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Busiest apps during the capture" Glyph="&#xE9F5;" Margin="0,0,0,4" />
                     <ItemsRepeater ItemsSource="{x:Bind Vm.Contributions}">
                         <ItemsRepeater.Layout><StackLayout Spacing="2" /></ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
@@ -70,10 +67,10 @@
 
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Why was my PC slow?" Style="{StaticResource SectionTitleTextStyle}" />
+                    <c:CardHeader Title="Why was my PC slow?" Glyph="&#xE9D9;" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <ComboBox ItemsSource="{x:Bind Vm.Periods}" SelectedIndex="{x:Bind Vm.PeriodIndex, Mode=TwoWay}" MinWidth="200" AutomationProperties.Name="Period" />
-                        <Button Content="Analyse" Command="{x:Bind Vm.WhySlowCommand}" />
+                        <Button Content="Analyze" Command="{x:Bind Vm.WhySlowCommand}" />
                     </StackPanel>
                     <StackPanel Spacing="10" Visibility="{x:Bind local:Bool.Vis(Vm.Diagnosis.HasResult), Mode=OneWay}">
                         <TextBlock Text="{x:Bind Vm.Diagnosis.Title, Mode=OneWay}" Style="{StaticResource EyebrowTextStyle}" />
